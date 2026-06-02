@@ -1,0 +1,105 @@
+<div class="page">
+
+  <div class="page-header">
+    <div class="header-content">
+      <img src="/logo_rouge_final.png" alt="Logo FTA" class="page-logo" />
+      <div class="header-text">
+        <h1>Fournisseurs</h1>
+        <p class="subtitle">Gestion des prestataires externes</p>
+      </div>
+    </div>
+    @if (isAdmin()) {
+      <button class="btn-primary" (click)="openAjouter()">
+        <mat-icon>add</mat-icon>
+        Ajouter un fournisseur
+      </button>
+    }
+  </div>
+
+  @if (success()) { <div class="alert success">✓ {{ success() }}</div> }
+  @if (error()) { <div class="alert error">⚠ {{ error() }}</div> }
+
+  <div class="filters">
+    <input class="search-input" type="text"
+           placeholder="Rechercher par nom de société..."
+           [(ngModel)]="recherche"/>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Chargement...</div>
+  } @else {
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Nom société</th>
+            <th>Contact</th>
+            @if (isAdmin()) { <th>Actions</th> }
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of fournisseursFiltres; track f.idFournisseur) {
+            <tr>
+              <td><strong>{{ f.nomSociete }}</strong></td>
+              <td>{{ f.contact ?? '—' }}</td>
+              @if (isAdmin()) {
+                <td class="actions">
+                  <button class="btn-edit" (click)="openModifier(f)">Modifier</button>
+                  <button class="btn-delete" (click)="openSupprimer(f)">Supprimer</button>
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr><td colspan="3" class="empty">Aucun fournisseur trouvé</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (showModal()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ isEditing() ? 'Modifier le fournisseur' : 'Ajouter un fournisseur' }}</h2>
+          <button class="close-btn" (click)="closeModal()">✕</button>
+        </div>
+        @if (error()) { <div class="alert error">⚠ {{ error() }}</div> }
+        <div class="form-group">
+          <label>Nom de la société *</label>
+          <input class="form-input" type="text" [(ngModel)]="form.nomSociete"
+                 placeholder="Ex: Transport Express Maroc"/>
+        </div>
+        <div class="form-group">
+          <label>Contact</label>
+          <input class="form-input" type="text" [(ngModel)]="form.contact"
+                 placeholder="Ex: 0661234567"/>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Annuler</button>
+          <button class="btn-primary" (click)="sauvegarder()">
+            {{ isEditing() ? 'Modifier' : 'Ajouter' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showDeleteModal()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal modal-small" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Supprimer le fournisseur</h2>
+          <button class="close-btn" (click)="closeModal()">✕</button>
+        </div>
+        <p class="modal-text">Cette action est irréversible. Confirmer la suppression ?</p>
+        @if (error()) { <div class="alert error">⚠ {{ error() }}</div> }
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Annuler</button>
+          <button class="btn-delete" (click)="supprimer()">Confirmer la suppression</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

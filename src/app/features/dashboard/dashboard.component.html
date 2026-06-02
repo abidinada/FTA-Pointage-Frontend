@@ -1,0 +1,243 @@
+<div class="dashboard">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="header-content">
+      <img src="/logo_rouge_final.png" alt="Logo FTA" class="page-logo" />
+      <div class="header-text">
+        <h1>Tableau de bord</h1>
+        <p class="welcome">Bonjour, <strong>{{ authService.currentUser()?.username }}</strong>
+          — {{ authService.currentUser()?.departement }}</p>
+      </div>
+    </div>
+    <div class="date">
+      <mat-icon>calendar_today</mat-icon>
+      {{ today }}
+    </div>
+  </div>
+
+  <!-- STATS CARDS -->
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(139,26,46,0.1);color:#8B1A2E">
+        <mat-icon>people</mat-icon>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ totalChauffeurs() }}</div>
+        <div class="stat-label">Chauffeurs total</div>
+      </div>
+      <div class="stat-badge active">{{ chauffeursActifs() }} actifs</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(26,58,139,0.1);color:#1A3A8B">
+        <mat-icon>local_shipping</mat-icon>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ totalTracteurs() }}</div>
+        <div class="stat-label">Tracteurs</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(26,107,58,0.1);color:#1A6B3A">
+        <mat-icon>inventory_2</mat-icon>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ totalRemorques() }}</div>
+        <div class="stat-label">Remorques</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(107,74,26,0.1);color:#6B4A1A">
+        <mat-icon>directions_car</mat-icon>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ totalVoitures() }}</div>
+        <div class="stat-label">Voitures de service</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(74,26,107,0.1);color:#4A1A6B">
+        <mat-icon>business</mat-icon>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ totalFournisseurs() }}</div>
+        <div class="stat-label">Fournisseurs</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- COLONNE GAUCHE -->
+    <div class="left-col">
+
+      <div class="section-title">
+        <mat-icon>bolt</mat-icon>
+        Accès rapide
+      </div>
+
+      <div class="modules-grid">
+        @for (module of modulesVisibles; track module.route) {
+          <a class="module-card" [routerLink]="module.route">
+            <div class="module-icon"
+                 [style.background]="module.color + '18'"
+                 [style.color]="module.color">
+              <mat-icon>{{ module.icon }}</mat-icon>
+            </div>
+            <div class="module-info">
+              <div class="module-title">{{ module.title }}</div>
+              <div class="module-desc">{{ module.description }}</div>
+            </div>
+            <mat-icon class="module-arrow" [style.color]="module.color">chevron_right</mat-icon>
+          </a>
+        }
+      </div>
+
+      <div class="section-title" style="margin-top:28px">
+        <mat-icon>donut_large</mat-icon>
+        Répartition chauffeurs
+      </div>
+
+      <div class="card">
+        <div class="repartition">
+          <div class="rep-item">
+            <div class="rep-label">
+              <span class="rep-dot" style="background:#1E40AF"></span>
+              Nationaux
+            </div>
+            <div class="rep-bar-wrap">
+              <div class="rep-bar" style="background:#1E40AF"
+                   [style.width]="totalChauffeurs() > 0 ? (chauffeursNationaux() / totalChauffeurs() * 100) + '%' : '0%'">
+              </div>
+            </div>
+            <div class="rep-value">{{ chauffeursNationaux() }}</div>
+          </div>
+          <div class="rep-item">
+            <div class="rep-label">
+              <span class="rep-dot" style="background:#92400E"></span>
+              Internationaux
+            </div>
+            <div class="rep-bar-wrap">
+              <div class="rep-bar" style="background:#92400E"
+                   [style.width]="totalChauffeurs() > 0 ? (chauffeursInternationaux() / totalChauffeurs() * 100) + '%' : '0%'">
+              </div>
+            </div>
+            <div class="rep-value">{{ chauffeursInternationaux() }}</div>
+          </div>
+          <div class="rep-item">
+            <div class="rep-label">
+              <span class="rep-dot" style="background:#065F46"></span>
+              Actifs
+            </div>
+            <div class="rep-bar-wrap">
+              <div class="rep-bar" style="background:#065F46"
+                   [style.width]="totalChauffeurs() > 0 ? (chauffeursActifs() / totalChauffeurs() * 100) + '%' : '0%'">
+              </div>
+            </div>
+            <div class="rep-value">{{ chauffeursActifs() }}</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COLONNE DROITE -->
+    <div class="right-col">
+
+      <div class="section-title">
+        <mat-icon>person_add</mat-icon>
+        Derniers chauffeurs
+      </div>
+
+      <div class="card">
+        @if (derniersChauffeurs().length === 0) {
+          <div class="empty-state">Aucun chauffeur enregistré</div>
+        }
+        @if (derniersChauffeurs().length > 0) {
+          <div class="chauffeur-list">
+            @for (c of derniersChauffeurs(); track c.idChauffeur) {
+              <div class="chauffeur-item">
+                <div class="chauffeur-avatar"
+                     [style.background]="c.typeChauffeur === 'NATIONAL' ? '#DBEAFE' : '#FEF3C7'"
+                     [style.color]="c.typeChauffeur === 'NATIONAL' ? '#1E40AF' : '#92400E'">
+                  {{ c.nom[0] }}{{ c.prenom[0] }}
+                </div>
+                <div class="chauffeur-info">
+                  <div class="chauffeur-name">{{ c.nom }} {{ c.prenom }}</div>
+                  <div class="chauffeur-type">{{ c.typeChauffeur }}</div>
+                </div>
+                <span class="badge-statut" [class.actif]="c.actif" [class.inactif]="!c.actif">
+                  {{ c.actif ? 'Actif' : 'Inactif' }}
+                </span>
+              </div>
+            }
+          </div>
+          <a class="voir-tout" routerLink="/chauffeurs">
+            Voir tous les chauffeurs
+            <mat-icon>arrow_forward</mat-icon>
+          </a>
+        }
+      </div>
+
+      @if (alertesVisa().length > 0) {
+        <div class="section-title" style="margin-top:20px">
+          <mat-icon style="color:#DC2626">warning</mat-icon>
+          Alertes visa
+        </div>
+        <div class="card card-alert">
+          @for (c of alertesVisa(); track c.idChauffeur) {
+            <div class="alerte-item">
+              <mat-icon class="alerte-icon" [class]="getVisaStatus(c.dateExpirationVisa)">
+                {{ getVisaStatus(c.dateExpirationVisa) === 'danger' ? 'error' : 'warning' }}
+              </mat-icon>
+              <div class="alerte-info">
+                <div class="alerte-name">{{ c.nom }} {{ c.prenom }}</div>
+                <div class="alerte-detail">{{ getVisaLabel(c.dateExpirationVisa) }}</div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="section-title" style="margin-top:20px">
+        <mat-icon [style.color]="vehiculesEnPanne().length > 0 ? '#D97706' : '#065F46'">
+          {{ vehiculesEnPanne().length > 0 ? 'build' : 'check_circle' }}
+        </mat-icon>
+        Véhicules en panne
+      </div>
+
+      <div class="card" [class.card-panne]="vehiculesEnPanne().length > 0">
+        @if (vehiculesEnPanne().length === 0) {
+          <div class="empty-state success">
+            <mat-icon>check_circle</mat-icon>
+            Tous les véhicules sont disponibles
+          </div>
+        }
+        @if (vehiculesEnPanne().length > 0) {
+          @for (v of vehiculesEnPanne(); track $index) {
+            <div class="panne-item">
+              <mat-icon class="panne-icon">
+                {{ v.type === 'Tracteur' ? 'local_shipping' : 'inventory_2' }}
+              </mat-icon>
+              <div class="panne-info">
+                <div class="panne-name">{{ v.immatriculation }}</div>
+                <div class="panne-statut">{{ v.statut }}</div>
+              </div>
+              <span class="badge-panne">{{ v.type }}</span>
+            </div>
+          }
+        }
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

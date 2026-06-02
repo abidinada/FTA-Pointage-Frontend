@@ -1,0 +1,33 @@
+<header class="header">
+  <div class="header-inner">
+
+    <a routerLink="/" class="logo">
+      <img src="fta-logo.png" alt="Logo FTA logistics">
+      <div class="logo-text">
+        <span class="name">FTA Logistics</span>
+        <span class="tagline">Smart Driver Attendance</span>
+      </div>
+    </a>
+
+    <div class="actions">
+
+      @if (authService.isLoggedIn()) {
+        <div class="user-info">
+          <div class="user-details">
+            <span class="user-name">{{ authService.currentUser()?.username }}</span>
+            <span class="user-dept">{{ authService.currentUser()?.departement }}</span>
+          </div>
+          <button class="logout-btn" (click)="logout()">
+            Déconnexion
+          </button>
+        </div>
+      } @else {
+        <button class="connexion-btn" routerLink="/login">
+          Connexion
+        </button>
+      }
+
+    </div>
+
+  </div>
+</header>

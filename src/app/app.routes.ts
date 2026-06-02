@@ -1,3 +1,66 @@
 import { Routes } from '@angular/router';
+import { AppLayoutComponent } from './layout/app-layout/app-layout.component';
+import { authGuard } from './core/guards/auth.guard';
 
-export const routes: Routes = [];
+export const routes: Routes = [
+
+  // Routes avec layout (header + footer)
+  {
+    path: '',
+    component: AppLayoutComponent,
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent),
+      },
+      {
+        path: 'dashboard',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
+      },
+      {
+        path: 'chauffeurs',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/chauffeurs/chauffeurs.component').then(m => m.ChauffeursComponent),
+      },
+      {
+        path: 'tracteurs',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/tracteurs/tracteurs.component').then(m => m.TracteursComponent),
+      },
+      {
+        path: 'remorques',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/remorques/remorques.component').then(m => m.RemorquesComponent),
+      },
+      {
+        path: 'voitures-service',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/voitures-service/voitures-service.component').then(m => m.VoituresServiceComponent),
+      },
+      {
+        path: 'fournisseurs',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/fournisseurs/fournisseurs.component').then(m => m.FournisseursComponent),
+      },
+      {
+        path: 'users',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/users/users.component')
+        .then(m => m.UsersComponent),
+    },
+    ],
+  },
+
+  // Login — sans layout
+  {
+    path: 'login',
+    loadComponent: () => import('./features/login/login.component').then(m => m.Login),
+  },
+
+  // 404
+  {
+    path: '**',
+    redirectTo: '',
+  },
+];

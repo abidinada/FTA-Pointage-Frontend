@@ -1,0 +1,138 @@
+<div class="page">
+
+  <div class="page-header">
+    <div class="header-content">
+      <img src="/logo_rouge_final.png" alt="Logo FTA" class="page-logo" />
+      <div class="header-text">
+        <h1>Remorques</h1>
+        <p class="subtitle">Gestion des remorques et leurs statuts</p>
+      </div>
+    </div>
+    @if (isAdmin()) {
+      <button class="btn-primary" (click)="openAjouter()">
+        <mat-icon>add</mat-icon>
+        Ajouter une remorque
+      </button>
+    }
+  </div>
+
+  @if (success()) { <div class="alert success">✓ {{ success() }}</div> }
+  @if (error()) { <div class="alert error">⚠ {{ error() }}</div> }
+
+  <div class="filters">
+    <input class="search-input" type="text"
+           placeholder="Rechercher par immatriculation..."
+           [(ngModel)]="recherche"/>
+    <select class="filter-select" [(ngModel)]="filtreStatut">
+      <option value="">Tous les statuts</option>
+      <option value="DISPONIBLE">Disponible</option>
+      <option value="EN_PANNE_AUTORISE">En panne autorisé</option>
+      <option value="EN_PANNE_IMMOBILISE">En panne immobilisé</option>
+      <option value="HORS_SERVICE">Hors service</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Chargement...</div>
+  } @else {
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Immatriculation</th>
+            <th>Type</th>
+            <th>Statut</th>
+            @if (canChangeStatut()) { <th>Actions</th> }
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of remorquesFiltres; track r.idRemorque) {
+            <tr>
+              <td><strong>{{ r.immatriculation }}</strong></td>
+              <td>{{ r.typeRemorque?.libelle }}</td>
+              <td>
+                <span class="badge" [ngClass]="getStatutClass(r.statutVehicule?.libelle)">
+                  {{ r.statutVehicule?.libelle }}
+                </span>
+              </td>
+              @if (canChangeStatut()) {
+                <td>
+                  <button class="btn-edit" (click)="openChangerStatut(r)">
+                    Changer statut
+                  </button>
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr><td colspan="4" class="empty">Aucune remorque trouvée</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (showModal()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Ajouter une remorque</h2>
+          <button class="close-btn" (click)="closeModal()">✕</button>
+        </div>
+        @if (error()) { <div class="alert error">⚠ {{ error() }}</div> }
+        <div class="form-group">
+          <label>Immatriculation *</label>
+          <input class="form-input" type="text" [(ngModel)]="form.immatriculation"
+                 placeholder="Ex: REM-001"/>
+        </div>
+        <div class="form-group">
+          <label>Type de remorque *</label>
+          <select class="form-input" [(ngModel)]="form.idTypeRemorque">
+            <option value="">Sélectionner un type</option>
+            @for (t of typesRemorque(); track t.idTypeRemorque) {
+              <option [value]="t.idTypeRemorque">{{ t.libelle }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Statut *</label>
+          <select class="form-input" [(ngModel)]="form.idStatutVehicule">
+            <option value="">Sélectionner un statut</option>
+            @for (s of statuts(); track s.idStatutVehicule) {
+              <option [value]="s.idStatutVehicule">{{ s.libelle }}</option>
+            }
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Annuler</button>
+          <button class="btn-primary" (click)="sauvegarder()">Ajouter</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showStatutModal()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal modal-small" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Changer le statut</h2>
+          <button class="close-btn" (click)="closeModal()">✕</button>
+        </div>
+        @if (error()) { <div class="alert error">⚠ {{ error() }}</div> }
+        <div class="form-group">
+          <label>Nouveau statut *</label>
+          <select class="form-input" [(ngModel)]="nouveauStatutId">
+            <option value="">Sélectionner un statut</option>
+            @for (s of statuts(); track s.idStatutVehicule) {
+              <option [value]="s.idStatutVehicule">{{ s.libelle }}</option>
+            }
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Annuler</button>
+          <button class="btn-primary" (click)="changerStatut()">Confirmer</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

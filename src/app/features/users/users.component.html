@@ -1,0 +1,155 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <h1>Utilisateurs</h1>
+      <p class="subtitle">Gestion des comptes utilisateurs — ADMIN uniquement</p>
+    </div>
+    <button class="btn-primary" (click)="openAjouter()">
+      <mat-icon>add</mat-icon>
+      Ajouter un utilisateur
+    </button>
+  </div>
+
+  @if (success()) { <div class="alert success">✓ {{ success() }}</div> }
+  @if (error()) { <div class="alert error">⚠ {{ error() }}</div> }
+
+  <div class="filters">
+    <input class="search-input" type="text"
+           placeholder="Rechercher par username ou département..."
+           [(ngModel)]="recherche"/>
+    <select class="filter-select" [(ngModel)]="filtreActif">
+      <option [ngValue]="null">Tous</option>
+      <option [ngValue]="true">Actifs</option>
+      <option [ngValue]="false">Inactifs</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Chargement...</div>
+  } @else {
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Département</th>
+            <th>Statut</th>
+            <th>Motif inactivité</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of usersFiltres; track u.idUser) {
+            <tr [class.inactive]="!u.actif">
+              <td><strong>{{ u.username }}</strong></td>
+              <td>
+                <span class="badge dept">{{ u.departement }}</span>
+              </td>
+              <td>
+                <span class="badge" [class.actif]="u.actif" [class.inactif]="!u.actif">
+                  {{ u.actif ? 'Actif' : 'Inactif' }}
+                </span>
+              </td>
+              <td>{{ u.motifInactivite ?? '—' }}</td>
+              <td class="actions">
+                <button class="btn-edit" (click)="openPassword(u)">
+                  <mat-icon>lock_reset</mat-icon>
+                </button>
+                @if (u.actif) {
+                  <button class="btn-delete" (click)="openDesactiver(u)">Désactiver</button>
+                } @else {
+                  <button class="btn-reactiver" (click)="reactiver(u)">Réactiver</button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="empty">Aucun utilisateur trouvé</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- MODAL AJOUTER -->
+  @if (showModal()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Ajouter un utilisateur</h2>
+          <button class="close-btn" (click)="closeModal()">✕</button>
+        </div>
+        @if (error()) { <div class="alert error">⚠ {{ error() }}</div> }
+        <div class="form-group">
+          <label>Username *</label>
+          <input class="form-input" type="text" [(ngModel)]="form.username"
+                 placeholder="Ex: agent_exploitation"/>
+        </div>
+        <div class="form-group">
+          <label>Mot de passe *</label>
+          <input class="form-input" type="password" [(ngModel)]="form.password"
+                 placeholder="Mot de passe"/>
+        </div>
+        <div class="form-group">
+          <label>Département *</label>
+          <select class="form-input" [(ngModel)]="form.idDepartement">
+            <option value="">Sélectionner un département</option>
+            @for (d of departements(); track d.idDepartement) {
+              <option [value]="d.idDepartement">{{ d.libelle }}</option>
+            }
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Annuler</button>
+          <button class="btn-primary" (click)="sauvegarder()">Créer</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL DESACTIVER -->
+  @if (showDesactiverModal()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal modal-small" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Désactiver l'utilisateur</h2>
+          <button class="close-btn" (click)="closeModal()">✕</button>
+        </div>
+        <p class="modal-text">L'utilisateur ne pourra plus se connecter.</p>
+        @if (error()) { <div class="alert error">⚠ {{ error() }}</div> }
+        <div class="form-group">
+          <label>Motif *</label>
+          <input class="form-input" type="text" [(ngModel)]="motifDesactivation"
+                 placeholder="Ex: Congé maladie"/>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Annuler</button>
+          <button class="btn-delete" (click)="desactiver()">Confirmer</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL RESET PASSWORD -->
+  @if (showPasswordModal()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal modal-small" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Réinitialiser le mot de passe</h2>
+          <button class="close-btn" (click)="closeModal()">✕</button>
+        </div>
+        @if (error()) { <div class="alert error">⚠ {{ error() }}</div> }
+        <div class="form-group">
+          <label>Nouveau mot de passe *</label>
+          <input class="form-input" type="password" [(ngModel)]="nouveauPassword"
+                 placeholder="Nouveau mot de passe"/>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Annuler</button>
+          <button class="btn-primary" (click)="reinitialiserPassword()">Confirmer</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

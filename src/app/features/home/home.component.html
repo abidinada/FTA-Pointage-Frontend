@@ -1,0 +1,85 @@
+<!-- HERO Section-->
+<section class="hero">
+  <div class="container hero-grid">
+
+    <div class="hero-text">
+      <div class="eyebrow">
+        <span class="dot"></span>
+        Smart Logistics System
+      </div>
+      <h1>
+        Gérez votre flotte avec
+        <span class="accent">intelligence</span>
+      </h1>
+      <p class="subtitle">Optimisez la gestion complète de vos chauffeurs, missions et qualité de service.</p>
+      <div class="cta-row">
+        <button class="btn-primary" routerLink="/login">Démarrer</button>
+        <button class="btn-secondary" routerLink="/login">En savoir plus</button>
+      </div>
+      <ul class="bullets">
+        <li>✓ Suivi temps réel des chauffeurs</li>
+        <li>✓ Gestion optimisée des missions</li>
+        <li>✓ Contrôle qualité intégré</li>
+      </ul>
+    </div>
+
+    <div class="hero-art">
+      <div class="shape-1"></div>
+      <div class="shape-2"></div>
+      <div class="road">
+        <div class="truck-wrap">
+          <img src="truck.png" alt="FTA Truck" class="truck-img" />
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats">
+  <div class="container stats-grid">
+    @for (stat of stats; track $index) {
+      <div class="stat">
+        <div class="stat-number">{{ stat.n }}<span class="stat-unit">{{ stat.unit }}</span></div>
+        <div class="stat-label">{{ statsLabels[$index] }}</div>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- FEATURE CARDS -->
+<section class="features">
+  <div class="container">
+    <div class="features-head">
+      <h2>Quatre solutions <span class="accent">puissantes</span></h2>
+      <p>Tous les outils pour gérer votre flotte efficacement</p>
+    </div>
+    <div class="cards-grid">
+      <app-feature-card
+        icon="group"
+        title="DAS RH"
+        description="Gestion des pointages et suivi des chauffeurs en temps réel."
+        image="/logo_rouge.png"
+      />
+      <app-feature-card
+        icon="local_shipping"
+        title="DAS Exploitation"
+        description="Affectation des missions et optimisation des véhicules."
+        image="/logo_gris.png"
+      />
+      <app-feature-card
+        icon="assignment_turned_in"
+        title="DAS Qualité"
+        description="Contrôle qualité et validation complète des données."
+        image="/logo_rouge.png"
+      />
+      <app-feature-card
+        icon="build"
+        title="DAS Maintenance"
+        description="Suivi de la maintenance préventive des véhicules."
+        image="/logo_gris.png"
+      />
+    </div>
+  </div>
+</section>

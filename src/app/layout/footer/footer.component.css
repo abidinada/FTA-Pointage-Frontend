@@ -1,0 +1,24 @@
+.footer {
+  background: #111217;
+  padding: 32px 0;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.footer-inner img {
+  height: 43px;
+  filter: brightness(0) invert(1);
+}
+
+.footer-inner span {
+  font-size: 13px;
+  color: #8E919C;
+}

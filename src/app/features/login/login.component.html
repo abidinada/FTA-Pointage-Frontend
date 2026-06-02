@@ -1,0 +1,49 @@
+<div class="login-overlay">
+  <div class="login-box">
+
+    <button class="close-btn" (click)="goBack()">✕</button>
+
+    <div class="login-header">
+      <div class="login-title">Connexion</div>
+      <div class="login-subtitle">Accédez à votre espace FTA Group</div>
+    </div>
+
+    <div class="form-group">
+      <label>Identifiant</label>
+      <input
+        class="form-input"
+        type="text"
+        placeholder="Votre identifiant"
+        [value]="username()"
+        (input)="username.set($any($event.target).value)"
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Mot de passe</label>
+      <input
+        class="form-input"
+        type="password"
+        placeholder="Votre mot de passe"
+        [value]="password()"
+        (input)="password.set($any($event.target).value)"
+        (keyup.enter)="login()"
+      />
+      <span class="forgot-link">Mot de passe oublié ?</span>
+    </div>
+
+    @if (error()) {
+      <div class="error-msg">⚠ {{ error() }}</div>
+    }
+
+    <button class="login-btn" (click)="login()" [disabled]="loading()">
+      @if (loading()) {
+        <span class="loader"></span>
+        Connexion en cours...
+      } @else {
+        Se connecter
+      }
+    </button>
+
+  </div>
+</div>

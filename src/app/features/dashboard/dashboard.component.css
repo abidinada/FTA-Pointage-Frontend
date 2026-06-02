@@ -1,0 +1,465 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap');
+
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  font-family: 'Barlow', sans-serif;
+  background: #F8F8F8;
+}
+
+/* PAGE HEADER */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  gap: 20px;
+}
+
+.header-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex: 1;
+}
+
+.page-logo {
+  height: 80px;
+  width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.header-text {
+  flex: 1;
+}
+
+.page-header h1 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 36px;
+  font-weight: 800;
+  color: #1A1410;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+.welcome {
+  font-size: 13px;
+  color: #7A6E68;
+  margin: 0;
+}
+
+.date {
+  font-size: 13px;
+  color: #9A8E88;
+  background: #F5F0EE;
+  padding: 8px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* STATS GRID */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border: 1px solid #F0EBE8;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+}
+
+.stat-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-value {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 30px;
+  font-weight: 800;
+  color: #1A1410;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #7A6E68;
+  margin-top: 2px;
+}
+
+.stat-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.stat-badge.active {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+/* MAIN GRID */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+  align-items: start;
+}
+
+/* SECTION TITLE */
+.section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1A1410;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* MODULES */
+.modules-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.module-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border: 1px solid #F0EBE8;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.module-card:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  border-color: #E0D0CC;
+}
+
+.module-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.module-info {
+  flex: 1;
+}
+
+.module-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1A1410;
+  margin-bottom: 2px;
+}
+
+.module-desc {
+  font-size: 11px;
+  color: #7A6E68;
+}
+
+.module-arrow {
+  font-size: 20px !important;
+  opacity: 0.5;
+}
+
+/* CARD */
+.card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border: 1px solid #F0EBE8;
+}
+
+.card-alert {
+  border-left: 3px solid #DC2626;
+}
+
+.card-panne {
+  border-left: 3px solid #D97706;
+}
+
+/* REPARTITION */
+.repartition {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rep-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rep-label {
+  font-size: 12px;
+  color: #3A2F28;
+  font-weight: 600;
+  width: 110px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.rep-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rep-bar-wrap {
+  flex: 1;
+  background: #F0EBE8;
+  border-radius: 20px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.rep-bar {
+  height: 100%;
+  border-radius: 20px;
+  transition: width 0.6s ease;
+  min-width: 4px;
+}
+
+.rep-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1A1410;
+  width: 24px;
+  text-align: right;
+}
+
+/* CHAUFFEUR LIST */
+.chauffeur-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.chauffeur-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chauffeur-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.chauffeur-info {
+  flex: 1;
+}
+
+.chauffeur-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1A1410;
+}
+
+.chauffeur-type {
+  font-size: 11px;
+  color: #7A6E68;
+}
+
+.badge-statut {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+.badge-statut.actif {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.badge-statut.inactif {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
+.voir-tout {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8B1A2E;
+  text-decoration: none;
+  margin-top: 8px;
+  transition: gap 0.2s;
+}
+
+.voir-tout:hover {
+  gap: 8px;
+}
+
+/* ALERTES VISA */
+.alerte-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #F0EBE8;
+}
+
+.alerte-item:last-child {
+  border-bottom: none;
+}
+
+.alerte-icon {
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.alerte-icon.danger { color: #DC2626; }
+.alerte-icon.warning { color: #D97706; }
+
+.alerte-info {
+  flex: 1;
+}
+
+.alerte-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1A1410;
+}
+
+.alerte-detail {
+  font-size: 11px;
+  color: #7A6E68;
+}
+
+/* VEHICULES EN PANNE */
+.panne-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #F0EBE8;
+}
+
+.panne-item:last-child {
+  border-bottom: none;
+}
+
+.panne-icon {
+  color: #D97706;
+  font-size: 20px !important;
+}
+
+.panne-info {
+  flex: 1;
+}
+
+.panne-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1A1410;
+}
+
+.panne-statut {
+  font-size: 11px;
+  color: #7A6E68;
+}
+
+.badge-panne {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center;
+  color: #9A8E88;
+  font-size: 13px;
+  padding: 16px 0;
+}
+
+.empty-state.success {
+  color: #065F46;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -1,0 +1,65 @@
+.fcard {
+  background: white;
+  border: 1px solid #DCDDE2;
+  border-radius: 16px;
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.fcard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(17, 18, 23, 0.08);
+  border-color: #BCBEC6;
+}
+
+.decoration {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+background: rgba(246, 214, 217, 0.45);
+  pointer-events: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.decoration img {
+  margin-top: 30%;
+  margin-left: 14%;
+  width: 120px;
+  height: 120px;
+  opacity: 1;
+ 
+}
+
+.icon-tile {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: #FBEDEE;
+  color: #B11E30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111217;
+  margin: 0 0 8px;
+}
+
+p {
+  font-size: 14px;
+  color: #6B6E79;
+  margin: 0;
+  line-height: 1.6;
+}

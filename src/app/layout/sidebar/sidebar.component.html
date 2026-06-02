@@ -1,0 +1,31 @@
+<aside class="sidebar" [class.collapsed]="collapsed()">
+
+  <button class="toggle-btn" (click)="toggleSidebar()">
+    <mat-icon>{{ collapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+  </button>
+
+  <nav class="nav">
+    @for (item of menuItems; track item.route) {
+      <a
+        class="nav-item"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [title]="collapsed() ? item.label : ''"
+      >
+        <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+        @if (!collapsed()) {
+          <span class="nav-label">{{ item.label }}</span>
+        }
+      </a>
+    }
+  </nav>
+
+  @if (!collapsed()) {
+    <div class="sidebar-footer">
+      <div class="dept-badge">
+        {{ authService.getDepartement() }}
+      </div>
+    </div>
+  }
+
+</aside>

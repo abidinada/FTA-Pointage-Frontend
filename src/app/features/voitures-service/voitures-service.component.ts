@@ -1,0 +1,149 @@
+import { Component, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../core/services/auth.service';
+import { MatIconModule } from '@angular/material/icon';
+
+@Component({
+  selector: 'app-voitures-service',
+  standalone: true,
+  imports: [CommonModule, FormsModule, MatIconModule],
+  templateUrl: './voitures-service.component.html',
+  styleUrl: './voitures-service.component.css',
+})
+export class VoituresServiceComponent implements OnInit {
+
+  private apiUrl = 'http://localhost:8080/api/voitures-service';
+
+  voitures = signal<any[]>([]);
+  marques = signal<any[]>([]);
+  statuts = signal<any[]>([]);
+  loading = signal(false);
+  error = signal('');
+  success = signal('');
+
+  recherche = '';
+  filtreStatut = '';
+
+  showModal = signal(false);
+  showStatutModal = signal(false);
+
+  form = { immatriculation: '', idMarque: '', idStatutVehicule: '' };
+  selectedId = signal<number | null>(null);
+  nouveauStatutId = '';
+
+  constructor(
+    private http: HttpClient,
+    public authService: AuthService
+  ) {}
+
+  ngOnInit() {
+    this.loadVoitures();
+    this.loadMarques();
+    this.loadStatuts();
+  }
+
+  loadVoitures() {
+    this.loading.set(true);
+    this.http.get<any[]>(this.apiUrl).subscribe({
+      next: (data) => { this.voitures.set(data); this.loading.set(false); },
+      error: () => { this.error.set('Erreur chargement'); this.loading.set(false); }
+    });
+  }
+
+  loadMarques() {
+    this.http.get<any[]>('http://localhost:8080/api/marques').subscribe({
+      next: (data) => this.marques.set(data)
+    });
+  }
+
+  loadStatuts() {
+    this.http.get<any[]>('http://localhost:8080/api/statuts-vehicule').subscribe({
+      next: (data) => this.statuts.set(data)
+    });
+  }
+
+  get voituresFiltres() {
+    return this.voitures().filter(v => {
+      const matchRecherche = !this.recherche ||
+        v.immatriculation.toLowerCase().includes(this.recherche.toLowerCase());
+      const matchStatut = !this.filtreStatut || v.statutVehicule?.libelle === this.filtreStatut;
+      return matchRecherche && matchStatut;
+    });
+  }
+
+  isAdmin() { return this.authService.getDepartement() === 'ADMIN'; }
+
+  canChangeStatut() {
+    const dept = this.authService.getDepartement();
+    return dept === 'ADMIN' || dept === 'MAINTENANCE';
+  }
+
+  openAjouter() {
+    this.form = { immatriculation: '', idMarque: '', idStatutVehicule: '' };
+    this.showModal.set(true);
+  }
+
+  openChangerStatut(v: any) {
+    this.selectedId.set(v.idVoitureService);
+    this.nouveauStatutId = '';
+    this.showStatutModal.set(true);
+  }
+
+  closeModal() {
+    this.showModal.set(false);
+    this.showStatutModal.set(false);
+    this.error.set('');
+  }
+
+  sauvegarder() {
+    if (!this.form.immatriculation || !this.form.idMarque || !this.form.idStatutVehicule) {
+      this.error.set('Tous les champs sont obligatoires');
+      return;
+    }
+    this.http.post(this.apiUrl, {
+      immatriculation: this.form.immatriculation,
+      idMarque: +this.form.idMarque,
+      idStatutVehicule: +this.form.idStatutVehicule
+    }).subscribe({
+      next: () => {
+        this.success.set('Voiture ajoutée avec succès');
+        this.closeModal();
+        this.loadVoitures();
+        setTimeout(() => this.success.set(''), 3000);
+      },
+      error: () => this.error.set('Erreur lors de la création')
+    });
+  }
+
+  changerStatut() {
+    if (!this.nouveauStatutId) {
+      this.error.set('Choisissez un statut');
+      return;
+    }
+    this.http.put(
+      `${this.apiUrl}/${this.selectedId()}/statut?idStatut=${this.nouveauStatutId}`,
+      {},
+      { responseType: 'text' }
+    ).subscribe({
+      next: () => {
+        this.success.set('Statut mis à jour');
+        this.closeModal();
+        this.loadVoitures();
+        setTimeout(() => this.success.set(''), 3000);
+      },
+      error: () => this.error.set('Erreur lors de la mise à jour')
+    });
+  }
+
+  getStatutClass(statut: string): string {
+    switch (statut) {
+      case 'DISPONIBLE': return 'disponible';
+      case 'EN_PANNE_AUTORISE': return 'panne-autorise';
+      case 'EN_PANNE_IMMOBILISE': return 'panne-immobilise';
+      case 'HORS_SERVICE': return 'hors-service';
+      default: return '';
+    }
+  }
+}

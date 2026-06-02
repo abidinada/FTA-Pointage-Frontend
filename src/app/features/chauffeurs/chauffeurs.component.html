@@ -1,0 +1,189 @@
+<div class="page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="header-content">
+      <img src="/logo_rouge_final.png" alt="Logo FTA" class="page-logo" />
+      <div class="header-text">
+        <h1>Chauffeurs</h1>
+        <p class="subtitle">Gestion des chauffeurs nationaux et internationaux</p>
+      </div>
+    </div>
+    @if (isAdmin()) {
+      <button class="btn-primary" (click)="openAjouter()">+ Ajouter un chauffeur</button>
+    }
+  </div>
+
+  <!-- MESSAGES -->
+  @if (success()) {
+    <div class="alert success">✓ {{ success() }}</div>
+  }
+  @if (error()) {
+    <div class="alert error">⚠ {{ error() }}</div>
+  }
+
+  <!-- FILTRES -->
+  <div class="filters">
+    <input
+      class="search-input"
+      type="text"
+      placeholder="Rechercher par nom ou prénom..."
+      [(ngModel)]="recherche"
+    />
+    <select class="filter-select" [(ngModel)]="filtreType">
+      <option value="">Tous les types</option>
+      <option value="NATIONAL">National</option>
+      <option value="INTERNATIONAL">International</option>
+    </select>
+    <select class="filter-select" [(ngModel)]="filtreActif">
+      <option [ngValue]="null">Tous</option>
+      <option [ngValue]="true">Actifs</option>
+      <option [ngValue]="false">Inactifs</option>
+    </select>
+  </div>
+
+  <!-- TABLEAU -->
+  @if (loading()) {
+    <div class="loading">Chargement...</div>
+  } @else {
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Type</th>
+            <th>Date embauche</th>
+            <th>Expiration visa</th>
+            <th>Statut</th>
+            @if (isAdmin()) {
+              <th>Actions</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of chauffeursFiltres; track c.idChauffeur) {
+            <tr [class.inactive]="!c.actif">
+              <td>{{ c.nom }}</td>
+              <td>{{ c.prenom }}</td>
+              <td>
+                <span class="badge" [class.national]="c.typeChauffeur === 'NATIONAL'"
+                      [class.international]="c.typeChauffeur === 'INTERNATIONAL'">
+                  {{ c.typeChauffeur }}
+                </span>
+              </td>
+              <td>{{ c.dateEmbauche ?? '—' }}</td>
+              <td>{{ c.dateExpirationVisa ?? '—' }}</td>
+              <td>
+                <span class="badge" [class.actif]="c.actif" [class.inactif]="!c.actif">
+                  {{ c.actif ? 'Actif' : 'Inactif' }}
+                </span>
+              </td>
+              @if (isAdmin()) {
+                <td class="actions">
+                  <button class="btn-edit" (click)="openModifier(c)">Modifier</button>
+                  @if (c.actif) {
+                    <button class="btn-delete" (click)="openDesactiver(c)">Désactiver</button>
+                  } @else {
+                    <button class="btn-reactiver" (click)="reactiver(c)">Réactiver</button>
+                  }
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty">Aucun chauffeur trouvé</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- MODAL AJOUTER / MODIFIER -->
+  @if (showModal()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+
+        <div class="modal-header">
+          <h2>{{ isEditing() ? 'Modifier le chauffeur' : 'Ajouter un chauffeur' }}</h2>
+          <button class="close-btn" (click)="closeModal()">✕</button>
+        </div>
+
+        @if (error()) {
+          <div class="alert error">⚠ {{ error() }}</div>
+        }
+
+        <div class="form-group">
+          <label>Nom *</label>
+          <input class="form-input" type="text" [(ngModel)]="form.nom" placeholder="Nom"/>
+        </div>
+
+        <div class="form-group">
+          <label>Prénom *</label>
+          <input class="form-input" type="text" [(ngModel)]="form.prenom" placeholder="Prénom"/>
+        </div>
+
+        <div class="form-group">
+          <label>Type *</label>
+          <select class="form-input" [(ngModel)]="form.typeChauffeur">
+            <option value="NATIONAL">National</option>
+            <option value="INTERNATIONAL">International</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Date d'embauche</label>
+          <input class="form-input" type="date" [(ngModel)]="form.dateEmbauche"/>
+        </div>
+
+        @if (form.typeChauffeur === 'INTERNATIONAL') {
+          <div class="form-group">
+            <label>Date expiration visa</label>
+            <input class="form-input" type="date" [(ngModel)]="form.dateExpirationVisa"/>
+          </div>
+        }
+
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Annuler</button>
+          <button class="btn-primary" (click)="sauvegarder()">
+            {{ isEditing() ? 'Modifier' : 'Ajouter' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- MODAL DÉSACTIVER -->
+  @if (showDesactiverModal()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal modal-small" (click)="$event.stopPropagation()">
+
+        <div class="modal-header">
+          <h2>Désactiver le chauffeur</h2>
+          <button class="close-btn" (click)="closeModal()">✕</button>
+        </div>
+
+        <p class="modal-text">Cette action désactivera le chauffeur. Il ne pourra plus être affecté à un programme.</p>
+
+        @if (error()) {
+          <div class="alert error">⚠ {{ error() }}</div>
+        }
+
+        <div class="form-group">
+          <label>Motif de désactivation *</label>
+          <input class="form-input" type="text" [(ngModel)]="motifDesactivation"
+                 placeholder="Ex: Fin de contrat"/>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Annuler</button>
+          <button class="btn-delete" (click)="desactiver()">Confirmer la désactivation</button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>

@@ -13,6 +13,15 @@
 
       @if (authService.isLoggedIn()) {
         <div class="user-info">
+
+          <!-- Cloche notifications -->
+          <a routerLink="/notifications" class="notif-btn">
+            <mat-icon>notifications</mat-icon>
+            <span class="notif-badge" *ngIf="notifCount() > 0">
+              {{ notifCount() > 99 ? '99+' : notifCount() }}
+            </span>
+          </a>
+
           <div class="user-details">
             <span class="user-name">{{ authService.currentUser()?.username }}</span>
             <span class="user-dept">{{ authService.currentUser()?.departement }}</span>

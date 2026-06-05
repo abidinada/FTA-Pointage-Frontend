@@ -1,0 +1,185 @@
+.rapports-container {
+  padding: 20px 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  font-size: 0.88rem;
+}
+
+/* ── HEADER ── */
+.page-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px;
+}
+.header-left { display: flex; align-items: center; gap: 10px; }
+.header-icon { font-size: 1.6rem; color: #0f766e; }
+.page-header h1 { font-size: 1.3rem; font-weight: 700; margin: 0; color: #111827; }
+
+/* ── BOUTONS ── */
+.btn-create {
+  background: #0f766e; color: #fff; border: none;
+  padding: 8px 16px; border-radius: 8px; cursor: pointer;
+  font-size: 0.82rem; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.btn-create:hover { background: #115e59; }
+
+.btn-primary {
+  background: #0f766e; color: #fff; border: none;
+  padding: 8px 14px; border-radius: 7px; cursor: pointer;
+  font-size: 0.82rem; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.btn-primary:hover { background: #115e59; }
+
+.btn-secondary {
+  background: #fff; color: #374151; border: 1px solid #d1d5db;
+  padding: 8px 14px; border-radius: 7px; cursor: pointer; font-size: 0.82rem;
+}
+.btn-secondary:hover { background: #f9fafb; }
+
+.btn-close {
+  background: #fff; border: 1px solid #e5e7eb;
+  width: 30px; height: 30px; border-radius: 6px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0;
+}
+
+/* ── ALERTES ── */
+.alert {
+  padding: 10px 14px; border-radius: 8px; margin-bottom: 12px;
+  font-size: 0.82rem; display: flex; align-items: center; gap: 6px;
+}
+.alert-success { background: #ecfdf5; color: #0f766e; border: 1px solid #a7f3d0; }
+.alert-error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+/* ── ONGLETS ── */
+.onglets {
+  display: flex; gap: 4px;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 16px;
+}
+
+.onglet {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border: none; background: none;
+  cursor: pointer; font-size: 0.82rem; font-weight: 500;
+  color: #64748b; border-bottom: 2px solid transparent;
+  margin-bottom: -2px; border-radius: 6px 6px 0 0;
+  transition: all 0.15s;
+}
+.onglet mat-icon { font-size: 16px; width: 16px; height: 16px; }
+.onglet:hover { background: #f8fafc; color: #374151; }
+.onglet.active {
+  color: #0f766e; border-bottom-color: #0f766e;
+  font-weight: 600; background: #f0fdf4;
+}
+
+.badge-count {
+  background: #fef3c7; color: #92400e;
+  font-size: 0.68rem; font-weight: 700;
+  padding: 1px 6px; border-radius: 10px; min-width: 18px; text-align: center;
+}
+.badge-count-green {
+  background: #dcfce7; color: #166534;
+}
+
+/* ── LOADING ── */
+.loading {
+  display: flex; align-items: center; gap: 8px;
+  padding: 40px; justify-content: center; color: #64748b;
+}
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* ── LISTE ── */
+.rapports-list { display: flex; flex-direction: column; gap: 8px; }
+
+/* ── CARD ── */
+.rapport-card {
+  display: flex; justify-content: space-between; align-items: center;
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+  padding: 14px 16px; cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.1s;
+  gap: 12px;
+}
+.rapport-card:hover {
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  transform: translateY(-1px);
+}
+
+.card-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.card-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+/* Icône statut */
+.statut-icon { font-size: 1.4rem; flex-shrink: 0; }
+.statut-brouillon  { color: #94a3b8; }
+.statut-soumis     { color: #2563eb; }
+.statut-retourne   { color: #d97706; }
+.statut-transmis_rh { color: #16a34a; }
+
+.card-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.card-date {
+  font-size: 0.88rem; font-weight: 600; color: #111827;
+  text-transform: capitalize;
+}
+.card-createur {
+  font-size: 0.72rem; color: #64748b;
+  display: flex; align-items: center; gap: 3px;
+}
+.icon-xs { font-size: 12px !important; width: 12px !important; height: 12px !important; }
+
+.card-retour {
+  font-size: 0.72rem; color: #92400e;
+  background: #fef3c7; padding: 3px 8px; border-radius: 4px;
+  display: flex; align-items: center; gap: 3px;
+  max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.card-arrow { color: #cbd5e1; font-size: 1.1rem; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center; padding: 48px 20px; color: #94a3b8;
+}
+.empty-state mat-icon { font-size: 3rem; width: 3rem; height: 3rem; margin-bottom: 12px; }
+.empty-state p { font-size: 0.9rem; margin-bottom: 16px; }
+
+/* ── BADGES ── */
+.badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 0.72rem; font-weight: 600; }
+.badge-brouillon { background: #f1f5f9; color: #475569; }
+.badge-soumis    { background: #dbeafe; color: #1d4ed8; }
+.badge-retourne  { background: #fef3c7; color: #92400e; }
+.badge-transmis  { background: #dcfce7; color: #166534; }
+.badge-default   { background: #f1f5f9; color: #475569; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(15,23,42,0.45);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.modal {
+  background: #fff; border-radius: 12px;
+  width: 400px; max-width: 95vw;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.18);
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 16px; border-bottom: 1px solid #e5e7eb;
+}
+.modal-header h2 {
+  margin: 0; font-size: 0.95rem; font-weight: 700; color: #111827;
+  display: flex; align-items: center; gap: 6px;
+}
+.modal-body { padding: 16px; }
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: 12px 16px; border-top: 1px solid #e5e7eb; background: #f8fafc;
+  border-radius: 0 0 12px 12px;
+}
+
+.form-group { margin-bottom: 12px; }
+.form-label { display: block; font-size: 0.78rem; font-weight: 600; color: #374151; margin-bottom: 5px; }
+.form-control {
+  width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 7px;
+  font-size: 0.85rem; background: #f8fafc; box-sizing: border-box;
+}
+.form-control:focus { outline: none; border-color: #0f766e; box-shadow: 0 0 0 3px rgba(15,118,110,0.1); }

@@ -1,0 +1,115 @@
+<div class="rapports-container">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-left">
+      <mat-icon class="header-icon">assignment</mat-icon>
+      <h1>Rapports Journaliers</h1>
+    </div>
+    <button *ngIf="isExploitation()" class="btn-create" (click)="openCreer()">
+      <mat-icon>add</mat-icon> Nouveau Rapport
+    </button>
+  </div>
+
+  <!-- ALERTES -->
+  <div class="alert alert-success" *ngIf="success()">{{ success() }}</div>
+  <div class="alert alert-error" *ngIf="error() && !showModal()">{{ error() }}</div>
+
+  <!-- ONGLETS -->
+  <div class="onglets">
+    <button class="onglet" [class.active]="ongletActif() === 'traiter'"
+            (click)="ongletActif.set('traiter')">
+      <mat-icon>pending_actions</mat-icon>
+      <span>À traiter</span>
+      <span class="badge-count" *ngIf="countTraiter > 0">{{ countTraiter }}</span>
+    </button>
+    <button class="onglet" [class.active]="ongletActif() === 'archives'"
+            (click)="ongletActif.set('archives')">
+      <mat-icon>archive</mat-icon>
+      <span>Archivés</span>
+      <span class="badge-count badge-count-green" *ngIf="countArchives > 0">{{ countArchives }}</span>
+    </button>
+    <button class="onglet" [class.active]="ongletActif() === 'tous'"
+            (click)="ongletActif.set('tous')">
+      <mat-icon>list</mat-icon>
+      <span>Tous ({{ rapports().length }})</span>
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading" *ngIf="loading()">
+    <mat-icon class="spin">sync</mat-icon> Chargement...
+  </div>
+
+  <!-- LISTE RAPPORTS -->
+  <div class="rapports-list" *ngIf="!loading()">
+
+    <!-- Vide -->
+    <div class="empty-state" *ngIf="rapportsFiltres.length === 0">
+      <mat-icon>inbox</mat-icon>
+      <p *ngIf="ongletActif() === 'traiter'">Aucun rapport à traiter</p>
+      <p *ngIf="ongletActif() === 'archives'">Aucun rapport archivé</p>
+      <p *ngIf="ongletActif() === 'tous'">Aucun rapport</p>
+      <button *ngIf="isExploitation() && ongletActif() !== 'archives'"
+              class="btn-create" (click)="openCreer()">
+        Créer le premier rapport
+      </button>
+    </div>
+
+    <!-- Cards -->
+    <div class="rapport-card"
+         *ngFor="let rapport of rapportsFiltres"
+         (click)="ouvrirRapport(rapport)">
+
+      <div class="card-left">
+        <mat-icon [class]="'statut-icon statut-' + rapport.statutRapport.toLowerCase()">
+          {{ getStatutIcon(rapport.statutRapport) }}
+        </mat-icon>
+        <div class="card-info">
+          <span class="card-date">{{ rapport.dateRapport | date:'EEEE dd MMMM yyyy' }}</span>
+          <span class="card-createur">
+            <mat-icon class="icon-xs">person</mat-icon>
+            {{ rapport.nomCreateur }}
+          </span>
+        </div>
+      </div>
+
+      <div class="card-right">
+        <span [class]="'badge ' + getBadgeClass(rapport.statutRapport)">
+          {{ getStatutLabel(rapport.statutRapport) }}
+        </span>
+        <div class="card-retour" *ngIf="rapport.commentaireRetour && rapport.statutRapport === 'RETOURNE'">
+          <mat-icon class="icon-xs">warning</mat-icon>
+          {{ rapport.commentaireRetour }}
+        </div>
+        <mat-icon class="card-arrow">chevron_right</mat-icon>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL CRÉER -->
+<div class="modal-overlay" *ngIf="showModal()" (click)="closeModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2><mat-icon class="icon-xs">add_circle</mat-icon> Nouveau Rapport</h2>
+      <button class="btn-close" (click)="closeModal()"><mat-icon>close</mat-icon></button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-error" *ngIf="error()">{{ error() }}</div>
+      <div class="form-group">
+        <label class="form-label">Date du rapport *</label>
+        <input type="date" [(ngModel)]="newDateRapport"
+               class="form-control" [max]="today">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModal()">Annuler</button>
+      <button class="btn-primary" (click)="creerRapport()">
+        <mat-icon>check</mat-icon> Créer
+      </button>
+    </div>
+  </div>
+</div>

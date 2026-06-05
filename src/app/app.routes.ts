@@ -46,9 +46,24 @@ export const routes: Routes = [
       {
         path: 'users',
         canActivate: [authGuard],
-        loadComponent: () => import('./features/users/users.component')
-        .then(m => m.UsersComponent),
-    },
+        loadComponent: () => import('./features/users/users.component').then(m => m.UsersComponent),
+      },
+      // ── Sprint 2 ──────────────────────────────────────────────────
+      {
+        path: 'rapports',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/rapports/rapports.component').then(m => m.RapportsComponent),
+      },
+      {
+        path: 'rapports/:id',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/rapport-detail/rapport-detail.component').then(m => m.RapportDetailComponent),
+      },
+      {
+        path: 'notifications',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/notifications/notifications.component').then(m => m.NotificationsComponent),
+      },
     ],
   },
 

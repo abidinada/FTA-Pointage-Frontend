@@ -1,0 +1,68 @@
+
+<div class="notif-page">
+
+  <!-- HEADER -->
+  <div class="notif-header">
+    <div class="header-left">
+      <img src="/logo_rouge_final.png" alt="FTA" class="fta-logo" />
+      <div>
+        <h1 class="page-title">Notifications</h1>
+        <span class="page-sub" *ngIf="nonLues > 0">
+          {{ nonLues }} non lue{{ nonLues > 1 ? 's' : '' }}
+        </span>
+        <span class="page-sub no-unread" *ngIf="nonLues === 0">Tout est lu</span>
+      </div>
+    </div>
+    <button class="btn-tout-lire"
+            *ngIf="nonLues > 0"
+            (click)="marquerToutesLues()">
+      <mat-icon>done_all</mat-icon>
+      Tout marquer lu
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="loading()">
+    <mat-icon class="spin">sync</mat-icon>
+    <span>Chargement...</span>
+  </div>
+
+  <!-- ERREUR -->
+  <div class="error-state" *ngIf="error()">
+    <mat-icon>error_outline</mat-icon> {{ error() }}
+  </div>
+
+  <!-- LISTE VIDE -->
+  <div class="empty-state" *ngIf="!loading() && notifications().length === 0">
+    <mat-icon>notifications_none</mat-icon>
+    <p>Aucune notification</p>
+  </div>
+
+  <!-- LISTE -->
+  <div class="notif-list" *ngIf="!loading() && notifications().length > 0">
+    <div class="notif-item"
+         *ngFor="let n of notifsFiltrees"
+         [class.unread]="!n.lue"
+         (click)="marquerLue(n)">
+
+      <!-- Icône -->
+      <div class="notif-icon-wrap" [class]="getIconColor(n.typeNotification)">
+        <mat-icon>{{ getIcon(n.typeNotification) }}</mat-icon>
+      </div>
+
+      <!-- Contenu -->
+      <div class="notif-content">
+        <div class="notif-top">
+          <span class="notif-type">{{ getTypeLabel(n.typeNotification) }}</span>
+          <span class="notif-date">{{ n.dateCreation | date:'dd/MM HH:mm' }}</span>
+        </div>
+        <p class="notif-message">{{ n.message }}</p>
+      </div>
+
+      <!-- Indicateur non lu -->
+      <div class="unread-dot" *ngIf="!n.lue"></div>
+
+    </div>
+  </div>
+
+</div>

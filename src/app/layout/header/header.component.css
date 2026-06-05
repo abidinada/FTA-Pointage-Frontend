@@ -129,3 +129,38 @@
   background: #8B1A2E;
   color: #fff;
 }
+
+
+.notif-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: #475569;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.notif-btn:hover { background: #f1f5f9; }
+.notif-btn mat-icon { font-size: 20px; width: 20px; height: 20px; }
+
+.notif-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #ef4444;
+  color: white;
+  font-size: 0.58rem;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  line-height: 1;
+  border: 1.5px solid white;
+}

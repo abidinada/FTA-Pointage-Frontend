@@ -38,31 +38,31 @@ export class DashboardComponent implements OnInit {
       icon: 'people', title: 'Chauffeurs',
       description: 'Gérer les chauffeurs nationaux et internationaux',
       route: '/chauffeurs', color: '#8B1A2E',
-      depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'RH']
+      depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'QUALITE', 'RH']
     },
     {
       icon: 'local_shipping', title: 'Tracteurs',
       description: 'Suivi et gestion du parc de tracteurs',
       route: '/tracteurs', color: '#1A3A8B',
-      depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'MAINTENANCE']
+      depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'QUALITE', 'MAINTENANCE']
     },
     {
       icon: 'inventory_2', title: 'Remorques',
       description: 'Gestion des remorques et leurs statuts',
       route: '/remorques', color: '#1A6B3A',
-      depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'MAINTENANCE']
+      depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'QUALITE', 'MAINTENANCE']
     },
     {
       icon: 'directions_car', title: 'Voitures de service',
       description: 'Gestion des voitures de service',
       route: '/voitures-service', color: '#6B4A1A',
-      depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'MAINTENANCE']
+      depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'QUALITE', 'MAINTENANCE']
     },
     {
       icon: 'business', title: 'Fournisseurs',
       description: 'Gestion des prestataires externes',
       route: '/fournisseurs', color: '#4A1A6B',
-      depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE']
+      depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'QUALITE']
     },
   ];
 

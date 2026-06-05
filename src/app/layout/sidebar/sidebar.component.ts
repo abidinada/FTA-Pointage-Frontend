@@ -41,32 +41,44 @@ export class SidebarComponent {
         label: 'Chauffeurs',
         icon: 'people',
         route: '/chauffeurs',
-        depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'RH']
+        depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'QUALITE', 'RH']
       },
       {
         label: 'Tracteurs',
         icon: 'local_shipping',
         route: '/tracteurs',
-        depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'MAINTENANCE']
+        depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE','QUALITE', 'MAINTENANCE']
       },
       {
         label: 'Remorques',
         icon: 'inventory_2',
         route: '/remorques',
-        depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'MAINTENANCE']
+        depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE','QUALITE', 'MAINTENANCE']
       },
       {
         label: 'Voitures service',
         icon: 'directions_car',
         route: '/voitures-service',
-        depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'MAINTENANCE']
+        depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE','QUALITE', 'MAINTENANCE']
       },
       {
         label: 'Fournisseurs',
         icon: 'business',
         route: '/fournisseurs',
-        depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE']
+        depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'QUALITE']
       },
+      {
+        label: 'Rapports',
+        icon: 'assignment',
+        route: '/rapports',
+        depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'QUALITE', 'RH','ADMIN_VS']
+      },
+      {
+        label: 'Notifications',
+        icon: 'notifications',
+        route: '/notifications',
+        depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'QUALITE', 'RH', 'MAINTENANCE','ADMIN_VS']
+      }
     ];
 
     return all.filter(item => item.depts.includes(dept));

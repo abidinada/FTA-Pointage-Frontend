@@ -26,3 +26,5 @@ jobs:
 
       - name: Build Angular
         run: npm run build -- --configuration production
+        env:
+          CI: false

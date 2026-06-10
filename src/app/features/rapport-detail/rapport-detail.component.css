@@ -1,4 +1,4 @@
-/* rapport-detail.component.css — Design compact pour 100+ tracteurs */
+/* rapport-detail.component.css — Sprint 3 */
 
 .page-wrapper { background: #f0f2f5; min-height: 100vh; font-size: 0.82rem; }
 
@@ -11,7 +11,6 @@
 }
 .top-bar-left { display: flex; align-items: center; gap: 10px; }
 .top-bar-right { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-
 .rapport-title { font-size: 1rem; font-weight: 700; margin: 0; color: #111827; }
 .rapport-subtitle { font-size: 0.72rem; color: #64748b; }
 
@@ -21,14 +20,13 @@ button mat-icon { font-size: 15px; width: 15px; height: 15px; }
 .btn-back:hover { background: #f1f5f9; }
 .btn-outline { background: #fff; border: 1px solid #d1d5db; color: #475569; }
 .btn-outline:hover { background: #f8fafc; }
-.btn-soumettre { background: #0f766e; color: #fff; font-weight: 600; }
-.btn-soumettre:hover { background: #115e59; }
 .btn-retourner { background: #7c3aed; color: #fff; }
 .btn-retourner:hover { background: #6d28d9; }
 .btn-valider { background: #0f766e; color: #fff; font-weight: 600; }
 .btn-valider:hover { background: #115e59; }
 .btn-primary { background: #0f766e; color: #fff; font-weight: 600; }
-.btn-primary:hover { background: #115e59; }
+.btn-primary:hover:not(:disabled) { background: #115e59; }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-secondary { background: #fff; color: #374151; border: 1px solid #d1d5db; }
 .btn-secondary:hover { background: #f9fafb; }
 .btn-close { background: #fff; border: 1px solid #e5e7eb; width: 28px; height: 28px; justify-content: center; padding: 0; border-radius: 6px; }
@@ -38,7 +36,7 @@ button mat-icon { font-size: 15px; width: 15px; height: 15px; }
 .stepper-bar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 8px 16px; display: flex; align-items: center; }
 .step { display: flex; align-items: center; gap: 5px; font-size: 0.68rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
 .step.active { color: #111827; }
-.step.done { color: #0f766e; }
+.step.done  { color: #0f766e; }
 .step-dot { width: 7px; height: 7px; border-radius: 50%; background: #d1d5db; flex-shrink: 0; }
 .step.active .step-dot { background: #7c3aed; }
 .step.done  .step-dot { background: #0f766e; }
@@ -52,6 +50,85 @@ button mat-icon { font-size: 15px; width: 15px; height: 15px; }
 .alert-error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
 .alert-retour  { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
 
+/* ════════════════════════════════════════════════════════════════
+   Sprint 3 — BANDEAU SOUS-RAPPORT
+════════════════════════════════════════════════════════════════ */
+.sous-rapport-banner {
+  margin: 10px 16px 0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.sr-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sr-banner-icon { font-size: 20px; color: #0f766e; }
+.sr-banner-info { display: flex; flex-direction: column; gap: 1px; }
+.sr-banner-title { font-size: 0.82rem; font-weight: 700; color: #111827; }
+.sr-banner-meta  { font-size: 0.7rem; color: #64748b; }
+
+.sr-banner-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Badges sous-rapport */
+.sr-badge { display: inline-block; padding: 3px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; }
+.sr-badge-brouillon { background: #f1f5f9; color: #475569; }
+.sr-badge-soumis    { background: #dbeafe; color: #1d4ed8; }
+.sr-badge-retourne  { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.sr-badge-valide    { background: #dcfce7; color: #166534; }
+
+/* Motif retour */
+.sr-motif-retour {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  color: #92400e;
+  max-width: 300px;
+}
+
+/* Bouton soumettre sous-rapport */
+.btn-soumettre-sr {
+  background: #0f766e;
+  color: #fff;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+}
+.btn-soumettre-sr:hover:not(:disabled) { background: #115e59; }
+.btn-soumettre-sr:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Info soumis / validé */
+.sr-info-soumis {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 0.75rem; color: #1d4ed8;
+  background: #eff6ff; padding: 4px 8px; border-radius: 5px;
+}
+.sr-info-valide {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 0.75rem; color: #166534; font-weight: 600;
+  background: #ecfdf5; padding: 4px 8px; border-radius: 5px;
+}
+
 /* ── BODY ── */
 .fiche-body { padding: 10px 16px; }
 
@@ -63,18 +140,13 @@ button mat-icon { font-size: 15px; width: 15px; height: 15px; }
 .empty-section { padding: 16px; text-align: center; color: #94a3b8; font-style: italic; font-size: 0.78rem; }
 .section-note { font-size: 0.68rem; color: #94a3b8; font-style: italic; margin-left: auto; }
 
-/* ── GRID TRACTEURS : 1 par ligne ── */
+/* ── GRID TRACTEURS ── */
 .tracteurs-grid { display: grid; grid-template-columns: 1fr; gap: 1px; background: #e5e7eb; }
-
-/* ── LIST VOITURES/FOURNISSEURS ── */
 .voitures-list { display: flex; flex-direction: column; gap: 1px; background: #e5e7eb; }
 
 /* ── LIGNE VÉHICULE ── */
 .vehicule-row { background: #fff; padding: 8px 10px; display: flex; align-items: flex-start; gap: 56px; flex-wrap: wrap; }
-
-/* Panne autorisée : bordure orange, fond blanc */
 .row-panne-autorise { background: #fff; border-left: 3px solid #f59e0b; }
-/* Immobilisé : bordure rouge, fond blanc */
 .row-immobilise     { background: #fff; border-left: 3px solid #ef4444; opacity: 0.85; }
 
 .vehicule-id { display: flex; align-items: center; gap: 6px; min-width: 120px; max-width: 140px; flex-shrink: 0; }
@@ -86,7 +158,7 @@ button mat-icon { font-size: 15px; width: 15px; height: 15px; }
 .tag-immobilise { display: none; }
 .immobilise-msg { font-size: 0.72rem; color: #991b1b; background: #fee2e2; padding: 3px 8px; border-radius: 4px; align-self: center; }
 
-/* ── SLOTS INLINE ── */
+/* ── SLOTS ── */
 .slots-inline { flex: 1; display: flex; gap: 15px; flex-wrap: wrap; min-width: 0; max-width: 520px; }
 .slot-col { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 140px; max-width: 230px; }
 .slot-col-header { display: flex; align-items: center; gap: 3px; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 0; color: #64748b; }
@@ -94,21 +166,18 @@ button mat-icon { font-size: 15px; width: 15px; height: 15px; }
 .slot-nat-col  .slot-col-header { color: #15803d; }
 .slot-jour-col .slot-col-header { color: #b45309; }
 .slot-nuit-col .slot-col-header { color: #1d4ed8; }
+.slot-divider { width: 1px; background: #e5e7eb; align-self: stretch; margin: 0 4px; }
 
-/* ── SLOT BLOCK : slot-line + badge traçabilité ── */
 .slot-block { display: flex; flex-direction: column; gap: 1px; margin-bottom: 3px; }
-
-/* ── LIGNE SLOT ── */
 .slot-line { display: flex; align-items: center; gap: 3px; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 4px; padding: 3px 5px; min-height: 26px; transition: border-color 0.2s; }
 .slot-line.slot-saving { border-color: #0f766e; background: #f0fdf4; }
 .slot-num { font-size: 0.6rem; font-weight: 700; color: #94a3b8; min-width: 10px; text-align: center; }
 
-/* ── DROPDOWNS ── */
-.sel-chauffeur { flex: 1; min-width: 0; max-width: 150px; padding: 2px 4px; border: none; background: transparent; font-size: 0.75rem; color: #111827; overflow: hidden; text-overflow: ellipsis; }
+.sel-chauffeur { flex: 1; min-width: 0; max-width: 150px; padding: 2px 4px; border: none; background: transparent; font-size: 0.75rem; color: #111827; }
 .sel-chauffeur:focus { outline: none; }
 .sel-chauffeur:disabled { color: #94a3b8; }
 .sel-chauffeur option:first-child,
-.sel-remorque option:first-child { color: #c0c8d4; }
+.sel-remorque option:first-child,
 .sel-chauffeur-full option:first-child { color: #c0c8d4; }
 .sel-mission { width: 44px; flex-shrink: 0; padding: 2px 2px; border: none; background: transparent; font-size: 0.72rem; color: #3730a3; font-weight: 700; text-align: center; }
 .sel-mission:focus { outline: none; }
@@ -118,45 +187,137 @@ button mat-icon { font-size: 15px; width: 15px; height: 15px; }
 .icon-saving { font-size: 12px !important; width: 12px !important; height: 12px !important; color: #0f766e; animation: spin 1s linear infinite; }
 
 /* ── TRAÇABILITÉ ── */
-.tracabilite-badge {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  padding: 1px 6px;
-  font-size: 0.6rem;
-  color: #94a3b8;
-  border-left: 2px solid #e5e7eb;
-  margin-left: 12px;
-}
-.tracabilite-badge mat-icon {
-  font-size: 9px !important;
-  width: 9px !important;
-  height: 9px !important;
-}
+.tracabilite-badge { display: flex; align-items: center; gap: 3px; padding: 1px 6px; font-size: 0.6rem; color: #94a3b8; border-left: 2px solid #e5e7eb; margin-left: 12px; }
+.tracabilite-badge mat-icon { font-size: 9px !important; width: 9px !important; height: 9px !important; }
 .tracabilite-badge .modif-icon { color: #7c3aed; }
 .tracabilite-badge .modif-text { color: #7c3aed; font-weight: 600; }
 .tracabilite-badge .tr-date    { color: #cbd5e1; font-size: 0.55rem; }
 
-/* ── TOGGLE MÊME CHAUFFEUR ── */
+/* ── TOGGLE ── */
 .slot-toggle-col { min-width: 90px; flex-shrink: 0; }
 .toggle-label { display: flex; align-items: center; gap: 5px; font-size: 0.7rem; color: #374151; cursor: pointer; }
 .toggle-label input[type="checkbox"] { width: 13px; height: 13px; cursor: pointer; accent-color: #0f766e; }
 
+/* ── REMORQUE ── */
+.vehicule-id-block { display: flex; flex-direction: column; gap: 4px; min-width: 140px; max-width: 160px; flex-shrink: 0; }
+.remorque-line { display: flex; align-items: center; gap: 4px; }
+.remorque-icon { color: #64748b; }
+.sel-remorque { flex: 1; padding: 2px 4px; border: 1px solid #e5e7eb; border-radius: 4px; font-size: 0.7rem; background: #f8fafc; color: #374151; }
+.sel-remorque:disabled { color: #94a3b8; }
+.remorque-rappel { display: flex; align-items: center; gap: 3px; font-size: 0.62rem; color: #92400e; background: #fef3c7; border: 1px solid #fcd34d; padding: 2px 6px; border-radius: 4px; margin-top: 2px; }
+.remorque-rappel mat-icon { font-size: 10px !important; width: 10px !important; height: 10px !important; color: #d97706; }
 
-/* ── Rappel meme remorque  ── */
-.remorque-rappel {
-  display: flex; align-items: center; gap: 3px;
-  font-size: 0.62rem; color: #92400e;
-  background: #fef3c7; border: 1px solid #fcd34d;
-  padding: 2px 6px; border-radius: 4px;
-  margin-top: 2px;
+/* Rappel remorque en panne — rouge */
+.remorque-rappel-panne {
+  color: #991b1b;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
 }
-.remorque-rappel mat-icon {
-  font-size: 10px !important; width: 10px !important; height: 10px !important;
-  color: #d97706;
+.remorque-rappel-panne mat-icon { color: #dc2626; }
+
+/* ════════════════════════════════════════════════════════════════
+   Sprint 3 — BLOC AUTRE
+════════════════════════════════════════════════════════════════ */
+.btn-add-autre {
+  margin-left: auto;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.btn-add-autre:hover { background: #6d28d9; }
+
+.autre-list { display: flex; flex-direction: column; gap: 1px; background: #e5e7eb; }
+
+.autre-row {
+  background: #fff;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
+.autre-chauffeur {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 160px;
+}
+.autre-nom { font-size: 0.8rem; font-weight: 600; color: #111827; }
+.autre-type { font-size: 0.65rem; color: #64748b; background: #f1f5f9; padding: 1px 5px; border-radius: 4px; }
+
+.autre-statut-bloc {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 160px;
+}
+
+/* Badges statut AUTRE */
+.autre-badge { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; }
+.autre-depot   { background: #dbeafe; color: #1d4ed8; }
+.autre-maladie { background: #fee2e2; color: #991b1b; }
+.autre-conge   { background: #fef3c7; color: #92400e; }
+.autre-repos   { background: #f1f5f9; color: #475569; }
+
+.autre-duree { font-size: 0.72rem; color: #64748b; }
+
+.autre-rh {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-left: auto;
+}
+
+.autre-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-icon-edit {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  width: 26px; height: 26px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 5px;
+}
+.btn-icon-edit mat-icon { font-size: 13px !important; width: 13px !important; height: 13px !important; }
+.btn-icon-edit:hover { background: #e2e8f0; }
+
+.btn-icon-delete {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  width: 26px; height: 26px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 5px;
+}
+.btn-icon-delete mat-icon { font-size: 13px !important; width: 13px !important; height: 13px !important; }
+.btn-icon-delete:hover { background: #fee2e2; }
+
+.autre-resume {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: #f8fafc;
+  border-top: 1px solid #e5e7eb;
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+/* ── ANIMATIONS ── */
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; }
 
 /* ── MODAL ── */
 .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(2px); }
@@ -187,23 +348,7 @@ textarea.form-control { min-height: 90px; resize: vertical; }
 .badge-soumis    { background: #dbeafe; color: #1d4ed8; }
 .badge-retourne  { background: #fef3c7; color: #92400e; }
 .badge-transmis  { background: #dcfce7; color: #166534; }
+.badge-qualite   { background: #ede9fe; color: #5b21b6; }
 .badge-default   { background: #f1f5f9; color: #475569; }
 
 .loading-screen { min-height: 200px; display: flex; align-items: center; justify-content: center; color: #64748b; gap: 8px; }
-.spin { animation: spin 1s linear infinite; }
-
-/* ── REMORQUE ── */
-.vehicule-id-block { display: flex; flex-direction: column; gap: 4px; min-width: 140px; max-width: 160px; flex-shrink: 0; }
-.remorque-line { display: flex; align-items: center; gap: 4px; }
-.remorque-icon { color: #64748b; }
-.sel-remorque { flex: 1; padding: 2px 4px; border: 1px solid #e5e7eb; border-radius: 4px; font-size: 0.7rem; background: #f8fafc; color: #374151; }
-.sel-remorque:disabled { color: #94a3b8; }
-
-
-
-/* ── FOURNISSEUR ── */
-.row-fournisseur { gap: 60px; }
-.row-fournisseur .vehicule-id { min-width: 180px; max-width: 220px; }
-.row-fournisseur .v-immat { white-space: normal; overflow: visible; text-overflow: unset; }
-.sel-slot-type { width: 42px; flex-shrink: 0; padding: 2px 2px; border: none; background: #e0e7ff; border-radius: 3px; font-size: 0.68rem; color: #3730a3; font-weight: 700; text-align: center; }
-.sel-slot-type:disabled { color: #94a3b8; background: #f1f5f9; }

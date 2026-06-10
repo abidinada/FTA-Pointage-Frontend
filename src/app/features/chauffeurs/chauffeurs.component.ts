@@ -152,34 +152,35 @@ export class ChauffeursComponent implements OnInit {
     }
   }
 
-desactiver() {
-  if (!this.motifDesactivation) {
-    this.error.set('Le motif est obligatoire');
-    return;
+  desactiver() {
+    if (!this.motifDesactivation) {
+      this.error.set('Le motif est obligatoire');
+      return;
+    }
+    this.http.put(`${this.apiUrl}/${this.selectedId()}/desactiver`,
+      { motif: this.motifDesactivation },
+      { responseType: 'text' }
+    ).subscribe({
+      next: () => {
+        this.success.set('Chauffeur désactivé');
+        this.closeModal();
+        this.loadChauffeurs();
+        setTimeout(() => this.success.set(''), 3000);
+      },
+      error: () => this.error.set('Erreur lors de la désactivation')
+    });
   }
-  this.http.put(`${this.apiUrl}/${this.selectedId()}/desactiver`,
-    { motif: this.motifDesactivation },
-    { responseType: 'text' }   // ← ajoute ça
-  ).subscribe({
-    next: () => {
-      this.success.set('Chauffeur désactivé');
-      this.closeModal();
-      this.loadChauffeurs();
-      setTimeout(() => this.success.set(''), 3000);
-    },
-    error: () => this.error.set('Erreur lors de la désactivation')
-  });
-}
-reactiver(c: any) {
-  this.http.put(`${this.apiUrl}/${c.idChauffeur}/reactiver`, {},
-    { responseType: 'text' }
-  ).subscribe({
-    next: () => {
-      this.success.set('Chauffeur réactivé avec succès');
-      this.loadChauffeurs();
-      setTimeout(() => this.success.set(''), 3000);
-    },
-    error: () => this.error.set('Erreur lors de la réactivation')
-  });
-}
+
+  reactiver(c: any) {
+    this.http.put(`${this.apiUrl}/${c.idChauffeur}/reactiver`, {},
+      { responseType: 'text' }
+    ).subscribe({
+      next: () => {
+        this.success.set('Chauffeur réactivé avec succès');
+        this.loadChauffeurs();
+        setTimeout(() => this.success.set(''), 3000);
+      },
+      error: () => this.error.set('Erreur lors de la réactivation')
+    });
+  }
 }

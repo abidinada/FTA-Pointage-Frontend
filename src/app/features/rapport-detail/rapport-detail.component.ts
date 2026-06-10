@@ -5,12 +5,13 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { MatIconModule } from '@angular/material/icon';
-import { RapportDetailService } from './rapport-detail.service';
+import { RapportDetailService, SousRapportResponse, AffectationAutreResponse } from './rapport-detail.service';
+import { SumValeurPipe } from '../../pipes/sum-valeur.pipe';
 
 @Component({
   selector: 'app-rapport-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule],
+  imports: [CommonModule, FormsModule, MatIconModule, SumValeurPipe],
   templateUrl: './rapport-detail.component.html',
   styleUrl: './rapport-detail.component.css',
   providers: [RapportDetailService]
@@ -19,12 +20,12 @@ export class RapportDetailComponent implements OnInit {
 
   private apiUrl = 'http://localhost:8080/api';
 
-  rapport = signal<any>(null);
+  rapport    = signal<any>(null);
   historique = signal<any[]>([]);
 
-  loading = signal(false);
-  error   = signal('');
-  success = signal('');
+  loading  = signal(false);
+  error    = signal('');
+  success  = signal('');
   idRapport!: number;
 
   showRetourModal     = signal(false);
@@ -34,13 +35,24 @@ export class RapportDetailComponent implements OnInit {
 
   remorqueParTracteur: { [id: number]: number | null } = {};
 
-  // Buffer : attend chauffeur + mission avant de sauvegarder
   private bufferChauffeur: { [key: string]: number | null } = {};
   private bufferMission:   { [key: string]: number | null } = {};
 
   autoriserMemeChaufParVoiture: { [idVoiture: number]: boolean } = {};
 
-  // Exposer le service au template
+  // ── Sprint 3 : Sous-rapport ───────────────────────────────────────
+  submittingSousRapport = signal(false);
+
+  // ── Sprint 3 : Bloc AUTRE ─────────────────────────────────────────
+  showAutreModal      = signal(false);
+  autreEnEdition      = signal<AffectationAutreResponse | null>(null);
+  autreForm = {
+    idChauffeur:    null as number | null,
+    statutJournee:  'DEPOT',
+    idDureeMission: null as number | null
+  };
+  savingAutre = signal(false);
+
   get svc() { return this.rapportSvc; }
 
   constructor(
@@ -57,7 +69,7 @@ export class RapportDetailComponent implements OnInit {
     this.loadRapport();
   }
 
-  // ── Chargement rapport ────────────────────────────────────────────
+  // ── Chargement ────────────────────────────────────────────────────
 
   loadRapport() {
     this.loading.set(true);
@@ -67,6 +79,26 @@ export class RapportDetailComponent implements OnInit {
         this.bufferChauffeur = {};
         this.bufferMission   = {};
         this.rapportSvc.construireMaps(data.programmes || [], this.remorqueParTracteur);
+
+        // Sprint 3 : init sous-rapport si agent exploitation
+        if (this.isExploitation() && this.isBrouillon()) {
+          this.rapportSvc.initSousRapport(this.idRapport).subscribe({
+            next: (sr) => this.rapportSvc.monSousRapport.set(sr),
+            error: () => {} // silencieux si déjà existant
+          });
+        }
+
+        // Sprint 3 : charger sous-rapport existant si pas BROUILLON
+        if (this.isExploitation() && !this.isBrouillon()) {
+          this.rapportSvc.getMonSousRapport(this.idRapport).subscribe({
+            next: (sr) => this.rapportSvc.monSousRapport.set(sr),
+            error: () => {}
+          });
+        }
+
+        // Sprint 3 : charger bloc AUTRE si RH ou tous les départements
+        this.rapportSvc.loadAffectationsAutre(this.idRapport);
+
         this.loading.set(false);
       },
       error: () => { this.error.set('Erreur chargement'); this.loading.set(false); }
@@ -82,27 +114,49 @@ export class RapportDetailComponent implements OnInit {
   // ── Droits ────────────────────────────────────────────────────────
 
   dept(): string { return this.authService.getDepartement(); }
+
   isExploitation(): boolean {
     return this.dept() === 'EXPLOITATION_NATIONALE' ||
            this.dept() === 'EXPLOITATION_INTERNATIONALE';
   }
-  isQualite():  boolean { return this.dept() === 'QUALITE'; }
-  isAdmin():    boolean { return this.dept() === 'ADMIN'; }
-  isAdminVS():  boolean { return this.dept() === 'ADMIN_VS'; }
+  isQualite():      boolean { return this.dept() === 'QUALITE'; }
+  isAdmin():        boolean { return this.dept() === 'ADMIN'; }
+  isAdminVS():      boolean { return this.dept() === 'ADMIN_VS'; }
+  isRH():           boolean { return this.dept() === 'RH'; }
+  isResponsable():  boolean { return this.dept() === 'RESPONSABLE_EXPLOITATION'; }
 
-  isBrouillon(): boolean { return this.rapport()?.statutRapport === 'BROUILLON'; }
-  isSoumis():    boolean { return this.rapport()?.statutRapport === 'SOUMIS'; }
-  isRetourne():  boolean { return this.rapport()?.statutRapport === 'RETOURNE'; }
-  isTransmis():  boolean { return this.rapport()?.statutRapport === 'TRANSMIS_RH'; }
+  // ── Statuts rapport ───────────────────────────────────────────────
 
+  isBrouillon():        boolean { return this.rapport()?.statutRapport === 'BROUILLON'; }
+  isTransmisQualite():  boolean { return this.rapport()?.statutRapport === 'TRANSMIS_QUALITE'; }
+  isRetourne():         boolean { return this.rapport()?.statutRapport === 'RETOURNE'; }
+  isTransmisRH():       boolean { return this.rapport()?.statutRapport === 'TRANSMIS_RH'; }
+
+  // ── Droits de saisie ──────────────────────────────────────────────
+
+  /**
+   * L'agent peut modifier ses affectations si :
+   * - Rapport BROUILLON
+   * - Son sous-rapport est BROUILLON ou RETOURNE (pas encore soumis)
+   */
   canEdit(): boolean {
-    if (this.isExploitation()) return this.isBrouillon() || this.isRetourne();
-    if (this.isQualite())      return this.isSoumis();
+    if (this.isExploitation()) {
+      if (!this.isBrouillon()) return false;
+      const sr = this.rapportSvc.monSousRapport();
+      if (!sr) return true;
+      return sr.statut === 'BROUILLON' || sr.statut === 'RETOURNE';
+    }
+    if (this.isQualite())     return this.isTransmisQualite();
+    if (this.isResponsable()) return this.isRetourne();
     return false;
   }
 
   canEditVoiture(): boolean {
-    return this.isAdminVS() && (this.isBrouillon() || this.isRetourne());
+    return this.isAdminVS() && this.isBrouillon();
+  }
+
+  canEditAutre(): boolean {
+    return this.isRH() && this.isTransmisRH();
   }
 
   // ── Statut véhicule ───────────────────────────────────────────────
@@ -114,15 +168,11 @@ export class RapportDetailComponent implements OnInit {
   isPanneAutoriseTracteur(t: any): boolean { return this.getTracteurStatut(t) === 'EN_PANNE_AUTORISE'; }
   isPanneAutoriseVoiture(v: any):  boolean { return this.getVoitureStatut(v)  === 'EN_PANNE_AUTORISE'; }
 
-  // ── Clé buffer ────────────────────────────────────────────────────
-  // On utilise idTracteur (pas idProgramme) pour avoir une clé stable
-  // même avant la création du programme
+  // ── Buffer key ────────────────────────────────────────────────────
 
   private bufferKey(idTracteur: number, typeSlot: string, num: number): string {
     return `t${idTracteur}-${typeSlot}-${num}`;
   }
-
-  // ── Valeurs affichées (buffer prioritaire sur base) ───────────────
 
   getChauffeurAff(idTracteur: number, typeSlot: string, num: number): number | null {
     const key = this.bufferKey(idTracteur, typeSlot, num);
@@ -139,11 +189,9 @@ export class RapportDetailComponent implements OnInit {
   }
 
   isSlotSaving(key: string): boolean { return this.savingSlot() === key; }
-
   tracteurKey(idTracteur: number, typeSlot: string, num: number): string {
     return this.bufferKey(idTracteur, typeSlot, num);
   }
-
   fournisseurKey(id: number): string { return `f-${id}`; }
 
   // ── Saisie tracteur ───────────────────────────────────────────────
@@ -170,7 +218,6 @@ export class RapportDetailComponent implements OnInit {
     const key = this.bufferKey(idTracteur, typeSlot, num);
 
     if (!idMission) {
-      // Effacer la mission du buffer
       delete this.bufferMission[key];
       const prog = this.svc.progParTracteur[idTracteur];
       const aff  = this.svc.getAff(prog, typeSlot, num);
@@ -185,16 +232,13 @@ export class RapportDetailComponent implements OnInit {
   private tenterSauvegarderTracteur(idTracteur: number, typeSlot: string, num: number, key: string) {
     const prog = this.svc.progParTracteur[idTracteur];
 
-    // Lire les deux valeurs depuis buffer EN PRIORITÉ, puis base
     const idChauffeur = this.bufferChauffeur[key]
       ?? this.svc.getAff(prog, typeSlot, num)?.idChauffeur ?? null;
     const idMission   = this.bufferMission[key]
       ?? this.svc.getAff(prog, typeSlot, num)?.idMission   ?? null;
 
-    // Attendre que les DEUX soient renseignés
     if (!idChauffeur || !idMission) return;
 
-    // Vérification conflit — on passe idTracteur pour skip le bon programme
     const conflit = this.svc.verifierConflit(idChauffeur, idMission, idTracteur, 'TRACTEUR');
     if (conflit) {
       this.error.set(conflit);
@@ -241,12 +285,11 @@ export class RapportDetailComponent implements OnInit {
     if (prog?.idProgramme) {
       doSave(prog.idProgramme);
     } else {
-      // Créer le programme tracteur
       this.svc.creerProgrammeTracteur(
         this.idRapport, idTracteur, this.remorqueParTracteur[idTracteur] || null
       ).subscribe({
         next: (p) => {
-          this.svc.progParTracteur[idTracteur].idProgramme = p.idProgramme;
+          this.svc.progParTracteur[idTracteur].idProgramme   = p.idProgramme;
           this.svc.progParTracteur[idTracteur].typeProgramme = 'TRACTEUR';
           doSave(p.idProgramme);
         },
@@ -255,7 +298,7 @@ export class RapportDetailComponent implements OnInit {
     }
   }
 
-  // ── Saisie voiture de service ─────────────────────────────────────
+  // ── Saisie voiture ────────────────────────────────────────────────
 
   onShiftChange(idVoiture: number, libelleShift: string, idChauffeur: number | null) {
     if (!this.canEditVoiture()) return;
@@ -264,13 +307,11 @@ export class RapportDetailComponent implements OnInit {
     const idShift = this.svc.shifts().find(s => s.libelle === libelleShift)?.idShift ?? null;
     const aff     = this.svc.getAffShift(prog, libelleShift);
 
-    // Effacer
     if (!idChauffeur) {
       if (aff) this.deleteAff(aff.idAffectation);
       return;
     }
 
-    // Vérifier chauffeur pas dans tracteur/fournisseur
     if (this.svc.isChauffeurPrisDansTracteurFournisseur(idChauffeur)) {
       const ou = this.svc.getOuChauffeurPris(idChauffeur);
       this.error.set(`Ce chauffeur est déjà affecté à ${ou}`);
@@ -279,7 +320,6 @@ export class RapportDetailComponent implements OnInit {
       return;
     }
 
-    // Vérifier même chauffeur JOUR+NUIT
     const affJour = this.svc.getAffShift(prog, 'JOUR');
     if (libelleShift === 'NUIT' &&
         affJour?.idChauffeur === idChauffeur &&
@@ -298,8 +338,7 @@ export class RapportDetailComponent implements OnInit {
         error: (err: any) => {
           const msg = this.svc.parseErr(err);
           this.error.set(msg.startsWith('MEME_CHAUFFEUR_JOUR_NUIT')
-            ? 'Cochez "Même chauffeur Jour/Nuit" pour autoriser.'
-            : msg);
+            ? 'Cochez "Même chauffeur Jour/Nuit" pour autoriser.' : msg);
           setTimeout(() => this.error.set(''), 5000);
           this.loadRapport();
         }
@@ -383,7 +422,6 @@ export class RapportDetailComponent implements OnInit {
     const idMission   = this.bufferMission[key]   ?? this.svc.getAffFournisseur(prog)?.idMission   ?? null;
     if (!idChauffeur || !idMission) return;
 
-    // Pour fournisseur on ne passe pas idTracteur — on passe null pour le type FOURNISSEUR
     const conflit = this.svc.verifierConflit(idChauffeur, idMission, null, 'FOURNISSEUR');
     if (conflit) {
       this.error.set(conflit);
@@ -442,7 +480,145 @@ export class RapportDetailComponent implements OnInit {
     }
   }
 
-  // ── Helpers template ─────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════
+  //  Sprint 3 — SOUS-RAPPORT
+  // ════════════════════════════════════════════════════════════════
+
+  get monSousRapport(): SousRapportResponse | null {
+    return this.rapportSvc.monSousRapport();
+  }
+
+  get srStatut(): string { return this.monSousRapport?.statut || ''; }
+  get srIsBrouillon(): boolean { return this.srStatut === 'BROUILLON'; }
+  get srIsSoumis():    boolean { return this.srStatut === 'SOUMIS'; }
+  get srIsRetourne():  boolean { return this.srStatut === 'RETOURNE'; }
+  get srIsValide():    boolean { return this.srStatut === 'VALIDE'; }
+
+  get peutSoumettreMonSousRapport(): boolean {
+    return this.isExploitation() &&
+           this.isBrouillon() &&
+           (this.srIsBrouillon || this.srIsRetourne);
+  }
+
+  soumettreMonSousRapport() {
+    const sr = this.monSousRapport;
+    if (!sr) return;
+    this.submittingSousRapport.set(true);
+    this.error.set('');
+    this.rapportSvc.soumettreMonSousRapport(sr.idSousRapport).subscribe({
+      next: (updated) => {
+        this.rapportSvc.monSousRapport.set(updated);
+        this.success.set('Affectations soumises au responsable !');
+        this.submittingSousRapport.set(false);
+        setTimeout(() => this.success.set(''), 4000);
+      },
+      error: (err: any) => {
+        this.error.set(this.svc.parseErr(err));
+        this.submittingSousRapport.set(false);
+      }
+    });
+  }
+
+  srStatutLabel(): string {
+    const m: Record<string, string> = {
+      BROUILLON: 'En cours de saisie',
+      SOUMIS:    'Soumis au responsable',
+      RETOURNE:  'Retourné — à corriger',
+      VALIDE:    'Validé ✓'
+    };
+    return m[this.srStatut] || '';
+  }
+
+  srStatutClass(): string {
+    const m: Record<string, string> = {
+      BROUILLON: 'sr-badge-brouillon',
+      SOUMIS:    'sr-badge-soumis',
+      RETOURNE:  'sr-badge-retourne',
+      VALIDE:    'sr-badge-valide'
+    };
+    return m[this.srStatut] || '';
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  //  Sprint 3 — BLOC AUTRE (RH)
+  // ════════════════════════════════════════════════════════════════
+
+  openAutreModal(aa?: AffectationAutreResponse) {
+    this.autreEnEdition.set(aa || null);
+    if (aa) {
+      this.autreForm = {
+        idChauffeur:    aa.idChauffeur,
+        statutJournee:  aa.statutJournee,
+        idDureeMission: aa.idDureeMission
+      };
+    } else {
+      this.autreForm = { idChauffeur: null, statutJournee: 'DEPOT', idDureeMission: null };
+    }
+    this.error.set('');
+    this.showAutreModal.set(true);
+  }
+
+  sauvegarderAutre() {
+    if (!this.autreForm.idChauffeur) {
+      this.error.set('Sélectionne un chauffeur');
+      return;
+    }
+    //if (this.autreForm.statutJournee === 'DEPOT' && !this.autreForm.idDureeMission) {
+     // this.error.set('La durée est obligatoire pour DEPOT');
+     // return;
+    //}
+
+    this.savingAutre.set(true);
+    const body = {
+      idRapport:       this.idRapport,
+      idChauffeur:     this.autreForm.idChauffeur!,
+      statutJournee:   this.autreForm.statutJournee,
+  
+    };
+
+    const aa = this.autreEnEdition();
+    const obs = aa
+      ? this.rapportSvc.modifierAffectationAutre(aa.idAffectationAutre, body)
+      : this.rapportSvc.creerAffectationAutre(body);
+
+    obs.subscribe({
+      next: () => {
+        this.showAutreModal.set(false);
+        this.savingAutre.set(false);
+        this.rapportSvc.loadAffectationsAutre(this.idRapport);
+        this.success.set(aa ? 'Modifié' : 'Ajouté au bloc AUTRE');
+        setTimeout(() => this.success.set(''), 3000);
+      },
+      error: (err: any) => {
+        this.error.set(this.svc.parseErr(err));
+        this.savingAutre.set(false);
+      }
+    });
+  }
+
+  supprimerAutre(id: number) {
+    this.rapportSvc.supprimerAffectationAutre(id).subscribe({
+      next: () => this.rapportSvc.loadAffectationsAutre(this.idRapport),
+      error: (err: any) => this.error.set(this.svc.parseErr(err))
+    });
+  }
+
+  getStatutAutreLabel(s: string): string {
+    const m: Record<string, string> = {
+      DEPOT: 'Dépôt', MALADIE: 'Maladie', REPOS: 'Repos'
+    };
+    return m[s] || s;
+  }
+
+  getStatutAutreClass(s: string): string {
+    const m: Record<string, string> = {
+      DEPOT: 'autre-depot', MALADIE: 'autre-maladie',
+      REPOS: 'autre-repos'
+    };
+    return m[s] || '';
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────
 
   private deleteAff(idAff: number) {
     this.svc.supprimerAffectation(idAff).subscribe({
@@ -451,79 +627,105 @@ export class RapportDetailComponent implements OnInit {
     });
   }
 
-  // ── Workflow ──────────────────────────────────────────────────────
+  // ── Workflow rapport ──────────────────────────────────────────────
 
-  soumettre() {
-    this.http.put<any>(`${this.apiUrl}/rapports/${this.idRapport}/soumettre`, {}).subscribe({
-      next: () => { this.success.set('Soumis'); this.loadRapport(); setTimeout(() => this.success.set(''), 3000); },
-      error: (err) => this.error.set(this.svc.parseErr(err))
-    });
-  }
-  resoumettre() {
-    this.http.put<any>(`${this.apiUrl}/rapports/${this.idRapport}/resoumettre`, {}).subscribe({
-      next: () => { this.success.set('Re-soumis'); this.loadRapport(); setTimeout(() => this.success.set(''), 3000); },
-      error: (err) => this.error.set(this.svc.parseErr(err))
-    });
-  }
-  openRetourModal() { this.commentaireRetour = ''; this.error.set(''); this.showRetourModal.set(true); }
+  openRetourModal()  { this.commentaireRetour = ''; this.error.set(''); this.showRetourModal.set(true); }
+
   retourner() {
     if (!this.commentaireRetour.trim()) { this.error.set('Commentaire obligatoire'); return; }
     this.http.put<any>(`${this.apiUrl}/rapports/${this.idRapport}/retourner`, {
       commentaire: this.commentaireRetour
     }).subscribe({
       next: () => {
-        this.success.set('Retourné');
+        this.success.set('Retourné au responsable');
         this.showRetourModal.set(false);
+        this.loadRapport();
+        setTimeout(() => this.success.set(''), 3000);
+      },
+      error: (err) => this.error.set(this.svc.parseErr(err))
+      
+    });
+  }
+
+  valider() {
+    this.http.put<any>(`${this.apiUrl}/rapports/${this.idRapport}/valider`, {}).subscribe({
+      next: () => {
+        this.success.set('Validé et transmis RH');
         this.loadRapport();
         setTimeout(() => this.success.set(''), 3000);
       },
       error: (err) => this.error.set(this.svc.parseErr(err))
     });
   }
-  valider() {
-    this.http.put<any>(`${this.apiUrl}/rapports/${this.idRapport}/valider`, {}).subscribe({
-      next: () => { this.success.set('Validé et transmis RH'); this.loadRapport(); setTimeout(() => this.success.set(''), 3000); },
-      error: (err) => this.error.set(this.svc.parseErr(err))
-    });
-  }
+
   openHistorique() { this.loadHistorique(); this.showHistoriqueModal.set(true); }
 
-  getBadgeClass(s: string): string {
-    const m: any = { BROUILLON: 'badge-brouillon', SOUMIS: 'badge-soumis', RETOURNE: 'badge-retourne', TRANSMIS_RH: 'badge-transmis' };
-    return m[s] || 'badge-default';
-  }
-  getStatutLabel(s: string): string {
-    const m: any = { BROUILLON: 'Brouillon', SOUMIS: 'Soumis', RETOURNE: 'Retourné', TRANSMIS_RH: 'Transmis RH' };
-    return m[s] || s;
-  }
-  retournerListe() { this.router.navigate(['/rapports']); }
-
   onRemorqueChange(idTracteur: number, idRemorque: number | null) {
-  this.remorqueParTracteur[idTracteur] = idRemorque;
-  const prog = this.svc.progParTracteur[idTracteur];
-
-  // Si le programme existe déjà → mettre à jour via PUT
-  if (prog?.idProgramme) {
-    this.http.put<any>(
-      `${this.apiUrl}/programmes/${prog.idProgramme}/remorque`,
-      { idRemorque: idRemorque }
-    ).subscribe({
-      next: () => this.loadRapport(),
-      error: (err) => this.error.set(this.svc.parseErr(err))
-    });
-  }
-  // Sinon → sera pris en compte à la création du programme
-}
-
-getRemorqueDejaUtilisee(idRemorque: number | null, idTracteurActuel: number): string | null {
-  if (!idRemorque) return null;
-  for (const [idTracteur, prog] of Object.entries(this.svc.progParTracteur)) {
-    if (Number(idTracteur) === idTracteurActuel) continue;
-    if (prog.idRemorque === idRemorque) {
-      return prog.immatriculationTracteur || '';
+    this.remorqueParTracteur[idTracteur] = idRemorque;
+    const prog = this.svc.progParTracteur[idTracteur];
+    if (prog?.idProgramme) {
+      this.http.put<any>(
+        `${this.apiUrl}/programmes/${prog.idProgramme}/remorque`,
+        { idRemorque }
+      ).subscribe({
+        next: () => this.loadRapport(),
+        error: (err) => this.error.set(this.svc.parseErr(err))
+      });
     }
   }
-  return null;
-}
-}
 
+  getRemorqueDejaUtilisee(idRemorque: number | null, idTracteurActuel: number): string | null {
+    if (!idRemorque) return null;
+    for (const [idTracteur, prog] of Object.entries(this.svc.progParTracteur)) {
+      if (Number(idTracteur) === idTracteurActuel) continue;
+      if (prog.idRemorque === idRemorque) {
+        return prog.immatriculationTracteur || '';
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Retourne le statut de la remorque sélectionnée si elle est en panne.
+   * Utilisé pour afficher le rappel rouge dans le HTML.
+   */
+  getRemorqueStatut(idRemorque: number | null): string | null {
+    if (!idRemorque) return null;
+    const r = this.svc.remorques().find(r => r.idRemorque === idRemorque);
+    if (!r) return null;
+    const statut = r.statutVehicule?.libelle || r.statut || '';
+    if (statut === 'EN_PANNE_IMMOBILISE' || statut === 'EN_PANNE_AUTORISE') {
+      return statut;
+    }
+    return null;
+  }
+
+  // ── Badges ────────────────────────────────────────────────────────
+
+  getBadgeClass(s: string): string {
+    const m: any = {
+      BROUILLON: 'badge-brouillon', SOUMIS: 'badge-soumis',
+      RETOURNE: 'badge-retourne', TRANSMIS_RH: 'badge-transmis',
+      TRANSMIS_QUALITE: 'badge-qualite'
+    };
+    return m[s] || 'badge-default';
+  }
+
+  getStatutLabel(s: string): string {
+    const m: any = {
+      BROUILLON: 'Brouillon', SOUMIS: 'Soumis',
+      RETOURNE: 'Retourné', TRANSMIS_RH: 'Transmis RH',
+      TRANSMIS_QUALITE: 'Transmis Qualité'
+    };
+    return m[s] || s;
+  }
+
+  retournerListe() {
+    const dept = this.authService.getDepartement();
+    if (dept === 'RESPONSABLE_EXPLOITATION') {
+      this.router.navigate(['/responsable/rapport', this.idRapport]);
+    } else {
+      this.router.navigate(['/rapports']);
+    }
+  }
+}

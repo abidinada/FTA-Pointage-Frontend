@@ -4,7 +4,7 @@ import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
 
-  // Routes avec layout (header + footer)
+  
   {
     path: '',
     component: AppLayoutComponent,
@@ -64,6 +64,16 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () => import('./features/notifications/notifications.component').then(m => m.NotificationsComponent),
       },
+      {
+        path: 'responsable/rapport/:id',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/responsable-rapport/responsable-rapport.component').then(m => m.ResponsableRapportComponent)
+      },
+      {
+        path: 'marques',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/marques/marques.component').then(m => m.MarquesComponent)
+      }
     ],
   },
 

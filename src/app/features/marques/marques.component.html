@@ -1,0 +1,98 @@
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-content">
+      <img src="/logo_rouge_final.png" alt="Logo FTA" class="page-logo" />
+      <div class="header-text">
+        <h1>Marques</h1>
+        <p class="subtitle">Gestion des marques de véhicules</p>
+      </div>
+    </div>
+    @if (isAdmin()) {
+      <button class="btn-primary" (click)="openAjouter()">+ Ajouter une marque</button>
+    }
+  </div>
+
+  <!-- MESSAGES -->
+  @if (success()) {
+    <div class="alert success">✓ {{ success() }}</div>
+  }
+  @if (error() && !showModal()) {
+    <div class="alert error">⚠ {{ error() }}</div>
+  }
+
+  <!-- LISTE -->
+  @if (loading()) {
+    <div class="loading">Chargement...</div>
+  } @else {
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Libellé</th>
+            @if (isAdmin()) {
+              <th>Actions</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of marques(); track m.idMarque) {
+            <tr>
+              <td>{{ m.idMarque }}</td>
+              <td>
+                <span class="marque-badge">{{ m.libelle }}</span>
+              </td>
+              @if (isAdmin()) {
+                <td class="actions">
+                  <button class="btn-edit" (click)="openModifier(m)">Modifier</button>
+                  <button class="btn-delete" (click)="supprimer(m)">Supprimer</button>
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="3" class="empty">Aucune marque trouvée</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- MODAL AJOUTER / MODIFIER -->
+  @if (showModal()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal modal-small" (click)="$event.stopPropagation()">
+
+        <div class="modal-header">
+          <h2>{{ isEditing() ? 'Modifier la marque' : 'Ajouter une marque' }}</h2>
+          <button class="close-btn" (click)="closeModal()">✕</button>
+        </div>
+
+        @if (error()) {
+          <div class="alert error">⚠ {{ error() }}</div>
+        }
+
+        <div class="form-group">
+          <label>Libellé *</label>
+          <input class="form-input" type="text"
+                 [(ngModel)]="form.libelle"
+                 placeholder="Ex: RENAULT"
+                 (keyup.enter)="sauvegarder()"/>
+          <small class="form-hint">Sera automatiquement converti en MAJUSCULES</small>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModal()">Annuler</button>
+          <button class="btn-primary" (click)="sauvegarder()">
+            {{ isEditing() ? 'Modifier' : 'Ajouter' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>

@@ -69,13 +69,18 @@ get rapportsFiltres(): any[] {
   if (onglet === 'traiter') {
     // Filtrage selon département
     if (dept === 'QUALITE') {
-      return tous.filter(r => r.statutRapport === 'SOUMIS');
+      return tous.filter(r => r.statutRapport === 'TRANSMIS_QUALITE');
     }
     if (dept === 'EXPLOITATION_NATIONALE' || dept === 'EXPLOITATION_INTERNATIONALE') {
       return tous.filter(r => ['BROUILLON', 'RETOURNE'].includes(r.statutRapport));
     }
     if (dept === 'RH') {
       return tous.filter(r => r.statutRapport === 'TRANSMIS_RH');
+    }
+    if (dept === 'RESPONSABLE_EXPLOITATION') {
+      return tous.filter(r => 
+      ['BROUILLON', 'TRANSMIS_QUALITE', 'RETOURNE'].includes(r.statutRapport)
+      );
     }
     // ADMIN voit tout
     return tous.filter(r => ['BROUILLON', 'SOUMIS', 'RETOURNE'].includes(r.statutRapport));
@@ -88,12 +93,12 @@ get rapportsFiltres(): any[] {
   const dept = this.authService.getDepartement();
   const tous = this.rapports();
   if (dept === 'QUALITE')
-    return tous.filter(r => r.statutRapport === 'SOUMIS').length;
+    return tous.filter(r => r.statutRapport === 'TRANSMIS_QUALITE').length;
   if (dept === 'EXPLOITATION_NATIONALE' || dept === 'EXPLOITATION_INTERNATIONALE')
     return tous.filter(r => ['BROUILLON', 'RETOURNE'].includes(r.statutRapport)).length;
   if (dept === 'RH')
     return tous.filter(r => r.statutRapport === 'TRANSMIS_RH').length;
-  return tous.filter(r => ['BROUILLON', 'SOUMIS', 'RETOURNE'].includes(r.statutRapport)).length;
+  return tous.filter(r => ['BROUILLON', 'TRANSMIS_QUALITE', 'RETOURNE'].includes(r.statutRapport)).length;
 }
 
   get countArchives(): number {
@@ -136,30 +141,37 @@ get rapportsFiltres(): any[] {
   }
 
   ouvrirRapport(rapport: any) {
+  const dept = this.authService.getDepartement();
+  if (dept === 'RESPONSABLE_EXPLOITATION') {
+    this.router.navigate(['/responsable/rapport', rapport.idRapport]);
+  } else {
     this.router.navigate(['/rapports', rapport.idRapport]);
   }
+}
 
   // ── Helpers ───────────────────────────────────────────────────────
 
   getBadgeClass(statut: string): string {
-    switch (statut) {
-      case 'BROUILLON':   return 'badge-brouillon';
-      case 'SOUMIS':      return 'badge-soumis';
-      case 'RETOURNE':    return 'badge-retourne';
-      case 'TRANSMIS_RH': return 'badge-transmis';
-      default:            return 'badge-default';
-    }
+  switch (statut) {
+    case 'BROUILLON':        return 'badge-brouillon';
+    case 'SOUMIS':           return 'badge-soumis';
+    case 'RETOURNE':         return 'badge-retourne';
+    case 'TRANSMIS_RH':      return 'badge-transmis';
+    case 'TRANSMIS_QUALITE': return 'badge-qualite';
+    default:                 return 'badge-default';
   }
+}
 
   getStatutLabel(statut: string): string {
-    switch (statut) {
-      case 'BROUILLON':   return 'Brouillon';
-      case 'SOUMIS':      return 'Soumis';
-      case 'RETOURNE':    return 'Retourné';
-      case 'TRANSMIS_RH': return 'Transmis RH';
-      default:            return statut;
-    }
+  switch (statut) {
+    case 'BROUILLON':        return 'Brouillon';
+    case 'SOUMIS':           return 'Soumis';
+    case 'RETOURNE':         return 'Retourné';
+    case 'TRANSMIS_RH':      return 'Transmis RH';
+    case 'TRANSMIS_QUALITE': return 'Transmis Qualité';
+    default:                 return statut;
   }
+}
 
   getStatutIcon(statut: string): string {
     switch (statut) {
@@ -167,7 +179,10 @@ get rapportsFiltres(): any[] {
       case 'SOUMIS':      return 'pending';
       case 'RETOURNE':    return 'reply';
       case 'TRANSMIS_RH': return 'check_circle';
+      case 'TRANSMIS_QUALITE': return 'verified';
       default:            return 'circle';
     }
   }
+
+
 }

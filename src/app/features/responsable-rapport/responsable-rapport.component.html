@@ -1,0 +1,314 @@
+<div class="page-wrapper" *ngIf="!loading(); else loadingTpl">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <button class="btn-back" (click)="retournerListe()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div *ngIf="rapport()">
+        <h1 class="rapport-title">Rapport du {{ rapport().dateRapport | date:'dd/MM/yyyy' }}</h1>
+        <span class="rapport-subtitle">Vue Responsable Exploitation</span>
+      </div>
+    </div>
+    <div class="top-bar-right" *ngIf="rapport()">
+      <span [class]="'badge-rapport ' + rapportStatutClass()">{{ rapportStatutLabel() }}</span>
+
+      <!-- Voir rapport complet → redirige vers rapport-detail -->
+      <button class="btn-outline" (click)="voirRapportComplet()">
+        <mat-icon>list_alt</mat-icon>
+        <span>Voir rapport complet</span>
+      </button>
+
+      <!-- Soumettre global → actif si tous VALIDE et rapport BROUILLON -->
+      <button class="btn-soumettre-global"
+              *ngIf="isBrouillon()"
+              [disabled]="!tousValides"
+              (click)="soumettreGlobal()"
+              [title]="tousValides ? '' : 'Tous les sous-rapports doivent être validés'">
+        <mat-icon>send</mat-icon>
+        <span>Soumettre à la Qualité</span>
+      </button>
+
+      <!-- Re-soumettre après retour qualité -->
+      <button class="btn-soumettre-global"
+              *ngIf="isRetourne()"
+              (click)="resoumettreQualite()">
+        <mat-icon>autorenew</mat-icon>
+        <span>Re-soumettre à la Qualité</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ALERTES -->
+  <div class="alerts-zone">
+    <div class="alert alert-success" *ngIf="success()">{{ success() }}</div>
+    <div class="alert alert-error"   *ngIf="error() && !showRetourModal()">{{ error() }}</div>
+    <div class="alert alert-retour"  *ngIf="rapport()?.commentaireRetour && isRetourne()">
+      <mat-icon class="icon-xs">warning</mat-icon>
+      <strong>Retour Qualité :</strong> {{ rapport().commentaireRetour }}
+    </div>
+  </div>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar" *ngIf="rapport()">
+
+    <div class="stat-chip stat-chip-neutral">
+      <span class="stat-chip-icon"><mat-icon>people</mat-icon></span>
+      <span class="stat-chip-text">
+        <span class="stat-val">{{ sousRapports().length }}</span>
+        <span class="stat-lbl">Agents</span>
+      </span>
+    </div>
+
+    <div class="stat-chip stat-chip-brouillon">
+      <span class="stat-chip-icon"><mat-icon>edit_note</mat-icon></span>
+      <span class="stat-chip-text">
+        <span class="stat-val">{{ nbBrouillons }}</span>
+        <span class="stat-lbl">En saisie</span>
+      </span>
+    </div>
+
+    <div class="stat-chip stat-chip-soumis">
+      <span class="stat-chip-icon"><mat-icon>send</mat-icon></span>
+      <span class="stat-chip-text">
+        <span class="stat-val">{{ nbSoumis }}</span>
+        <span class="stat-lbl">En attente de validation</span>
+      </span>
+    </div>
+
+    <div class="stat-chip stat-chip-retourne">
+      <span class="stat-chip-icon"><mat-icon>reply</mat-icon></span>
+      <span class="stat-chip-text">
+        <span class="stat-val">{{ nbRetournes }}</span>
+        <span class="stat-lbl">Retournés</span>
+      </span>
+    </div>
+
+    <div class="stat-chip stat-chip-valide">
+      <span class="stat-chip-icon"><mat-icon>check_circle</mat-icon></span>
+      <span class="stat-chip-text">
+        <span class="stat-val">{{ nbValides }}</span>
+        <span class="stat-lbl">Validés</span>
+      </span>
+    </div>
+
+    <div class="stat-divider"></div>
+
+    <div class="stat-chip stat-chip-neutral">
+      <span class="stat-chip-icon"><mat-icon>local_shipping</mat-icon></span>
+      <span class="stat-chip-text">
+        <span class="stat-val">{{ nbAffectes }}/{{ totalVehicules }}</span>
+        <span class="stat-lbl">Véhicules affectés</span>
+      </span>
+    </div>
+
+    <div class="stat-chip" [class.stat-chip-warning]="vehiculesNonAffectes().length > 0" [class.stat-chip-neutral]="vehiculesNonAffectes().length === 0">
+      <span class="stat-chip-icon"><mat-icon>warning</mat-icon></span>
+      <span class="stat-chip-text">
+        <span class="stat-val">{{ vehiculesNonAffectes().length }}</span>
+        <span class="stat-lbl">Non affectés</span>
+      </span>
+    </div>
+
+  </div>
+
+  <div class="tab-content">
+
+    <!-- ══════════════════ SOUS-RAPPORTS AGENTS ══════════════════ -->
+    <div class="sr-section">
+      <div class="sr-section-title">
+        <mat-icon>people</mat-icon>
+        <h2>Sous-rapports par agent</h2>
+      </div>
+
+      <div class="sr-empty" *ngIf="sousRapports().length === 0">
+        Aucun agent n'a encore saisi d'affectations.
+      </div>
+
+      <div class="sr-list">
+        <div class="sr-card" *ngFor="let sr of sousRapports()"
+             [class.sr-card-soumis]="sr.statut === 'SOUMIS'"
+             [class.sr-card-retourne]="sr.statut === 'RETOURNE'"
+             [class.sr-card-valide]="sr.statut === 'VALIDE'">
+
+          <!-- En-tête agent -->
+          <div class="sr-card-header">
+            <div class="sr-agent-info">
+              <mat-icon class="sr-agent-icon">person</mat-icon>
+              <div>
+                <span class="sr-agent-name">{{ sr.usernameAgent }}</span>
+                <span class="sr-agent-dept">{{ sr.departementAgent }}</span>
+              </div>
+            </div>
+            <div class="sr-card-right">
+              <span [class]="'sr-badge ' + statutClass(sr.statut)">
+                {{ statutLabel(sr.statut) }}
+              </span>
+              <span class="sr-nb-prog">{{ sr.nbProgrammes }} programme(s)</span>
+            </div>
+          </div>
+
+          <!-- Programmes de l'agent -->
+          <div class="sr-programmes" *ngIf="sr.programmes && sr.programmes.length > 0">
+            <div class="sr-prog-item" *ngFor="let prog of sr.programmes">
+
+              <!-- Titre programme -->
+              <div class="sr-prog-title">
+                <mat-icon class="icon-xs">
+                  {{ prog.typeProgramme === 'VOITURE_SERVICE' ? 'directions_car' :
+                     prog.typeProgramme === 'FOURNISSEUR' ? 'business' : 'local_shipping' }}
+                </mat-icon>
+                <span>{{ prog.immatriculationTracteur || prog.immatriculationVoiture || prog.nomFournisseur }}</span>
+                <span class="sr-prog-rem" *ngIf="prog.immatriculationRemorque">
+                  + {{ prog.immatriculationRemorque }}
+                </span>
+              </div>
+
+              <!-- Affectations -->
+              <div class="sr-aff-list" *ngIf="prog.affectations?.length > 0">
+                <div class="sr-aff-line" *ngFor="let aff of prog.affectations">
+                  <span class="sr-aff-slot"
+                        [class.slot-int]="aff.typeSlot === 'INTERNATIONAL'"
+                        [class.slot-nat]="aff.typeSlot === 'NATIONAL'"
+                        [class.slot-shift]="aff.libelleShift">
+                    {{ aff.typeSlot || aff.libelleShift }}
+                  </span>
+                  <span class="sr-aff-num">{{ aff.numeroChauffeur }}</span>
+                  <span class="sr-aff-chauffeur">{{ aff.nomChauffeur }} {{ aff.prenomChauffeur }}</span>
+                  <span class="sr-aff-mission" *ngIf="aff.codeAffichage">{{ aff.codeAffichage }}</span>
+                </div>
+              </div>
+              <div class="sr-aff-vide" *ngIf="!prog.affectations?.length">
+                <mat-icon class="icon-xs">info</mat-icon> Programme sans affectation
+              </div>
+
+            </div>
+          </div>
+          <div class="sr-no-prog" *ngIf="!sr.programmes || sr.programmes.length === 0">
+            <mat-icon class="icon-xs">info</mat-icon> Aucun programme créé
+          </div>
+
+          <!-- Motif retour -->
+          <div class="sr-motif" *ngIf="sr.statut === 'RETOURNE' && sr.motifRetour">
+            <mat-icon class="icon-xs">reply</mat-icon>
+            <span>{{ sr.motifRetour }}</span>
+          </div>
+
+          <!-- Date soumission -->
+          <div class="sr-meta-line" *ngIf="sr.dateSoumission">
+            <mat-icon class="icon-xs">schedule</mat-icon>
+            Soumis le {{ sr.dateSoumission | date:'dd/MM/yyyy HH:mm' }}
+          </div>
+
+          <!-- Actions (seulement si SOUMIS) -->
+          <div class="sr-actions" *ngIf="sr.statut === 'SOUMIS'">
+            <button class="btn-valider-sr"
+                    (click)="valider(sr)"
+                    [disabled]="isActing(sr.idSousRapport)">
+              <mat-icon>{{ isActing(sr.idSousRapport) ? 'sync' : 'check_circle' }}</mat-icon>
+              <span>Valider</span>
+            </button>
+            <button class="btn-retourner-sr"
+                    (click)="openRetourModal(sr)"
+                    [disabled]="isActing(sr.idSousRapport)">
+              <mat-icon>reply</mat-icon>
+              <span>Retourner</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ VÉHICULES NON AFFECTÉS ══════════════════ -->
+    <div class="non-aff-section" *ngIf="vehiculesNonAffectes().length > 0">
+      <div class="sr-section-title">
+        <mat-icon style="color:#f59e0b">warning</mat-icon>
+        <h2>Véhicules non affectés ({{ vehiculesNonAffectes().length }})</h2>
+      </div>
+      <div class="non-aff-groups">
+
+        <div class="non-aff-group" *ngIf="tracteursNonAffectes.length > 0">
+          <div class="non-aff-group-title">
+            <mat-icon class="icon-xs">local_shipping</mat-icon>
+            <span>Tracteurs</span>
+            <span class="non-aff-group-count">{{ tracteursNonAffectes.length }}</span>
+          </div>
+          <div class="non-aff-list">
+            <div class="non-aff-item" *ngFor="let v of tracteursNonAffectes">
+              <mat-icon class="icon-xs">{{ getVehiculeIcon(v.type) }}</mat-icon>
+              <span>{{ v.immatriculation || v.nom }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="non-aff-group" *ngIf="voituresNonAffectees.length > 0">
+          <div class="non-aff-group-title">
+            <mat-icon class="icon-xs">directions_car</mat-icon>
+            <span>Voitures de service</span>
+            <span class="non-aff-group-count">{{ voituresNonAffectees.length }}</span>
+          </div>
+          <div class="non-aff-list">
+            <div class="non-aff-item" *ngFor="let v of voituresNonAffectees">
+              <mat-icon class="icon-xs">{{ getVehiculeIcon(v.type) }}</mat-icon>
+              <span>{{ v.immatriculation || v.nom }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="non-aff-group" *ngIf="fournisseursNonAffectes.length > 0">
+          <div class="non-aff-group-title">
+            <mat-icon class="icon-xs">business</mat-icon>
+            <span>Fournisseurs</span>
+            <span class="non-aff-group-count">{{ fournisseursNonAffectes.length }}</span>
+          </div>
+          <div class="non-aff-list">
+            <div class="non-aff-item" *ngFor="let v of fournisseursNonAffectes">
+              <mat-icon class="icon-xs">{{ getVehiculeIcon(v.type) }}</mat-icon>
+              <span>{{ v.immatriculation || v.nom }}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="non-aff-section non-aff-ok" *ngIf="vehiculesNonAffectes().length === 0 && sousRapports().length > 0">
+      <mat-icon>check_circle</mat-icon>
+      <span>Tous les véhicules sont affectés</span>
+    </div>
+
+  </div>
+
+</div>
+
+<ng-template #loadingTpl>
+  <div class="loading-screen"><mat-icon class="spin">sync</mat-icon> Chargement...</div>
+</ng-template>
+
+<!-- MODAL RETOUR SOUS-RAPPORT -->
+<div class="modal-overlay" *ngIf="showRetourModal()" (click)="showRetourModal.set(false)">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2><mat-icon class="icon-xs">reply</mat-icon>
+        Retourner à {{ srEnRetour()?.usernameAgent }}
+      </h2>
+      <button class="btn-close" (click)="showRetourModal.set(false)"><mat-icon>close</mat-icon></button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-error" *ngIf="error()">{{ error() }}</div>
+      <div class="form-group">
+        <label class="form-label">Motif obligatoire *</label>
+        <textarea [(ngModel)]="motifRetour" class="form-control" rows="4"
+                  placeholder="Expliquez ce qui doit être corrigé..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showRetourModal.set(false)">Annuler</button>
+      <button class="btn-retourner-modal" (click)="confirmerRetour()">
+        <mat-icon>reply</mat-icon> Retourner
+      </button>
+    </div>
+  </div>
+</div>

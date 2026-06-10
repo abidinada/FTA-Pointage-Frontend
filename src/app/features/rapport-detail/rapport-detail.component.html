@@ -11,32 +11,90 @@
     </div>
     <div class="top-bar-right" *ngIf="rapport()">
       <button class="btn-outline" (click)="openHistorique()"><mat-icon>history</mat-icon><span>Historique</span></button>
-      <button *ngIf="isExploitation() && isBrouillon()" class="btn-soumettre" (click)="soumettre()"><span>Soumettre</span><mat-icon>send</mat-icon></button>
-      <button *ngIf="isExploitation() && isRetourne()" class="btn-soumettre" (click)="resoumettre()"><span>Re-soumettre</span><mat-icon>autorenew</mat-icon></button>
-      <button *ngIf="isQualite() && isSoumis()" class="btn-retourner" (click)="openRetourModal()"><mat-icon>reply</mat-icon><span>Retourner</span></button>
-      <button *ngIf="isQualite() && isSoumis()" class="btn-valider" (click)="valider()"><mat-icon>check_circle</mat-icon><span>Valider & Transmettre RH</span></button>
+      <!-- Qualité : retourner ou valider -->
+      <button *ngIf="isQualite() && isTransmisQualite()" class="btn-retourner" (click)="openRetourModal()">
+        <mat-icon>reply</mat-icon><span>Retourner</span>
+      </button>
+      <button *ngIf="isQualite() && isTransmisQualite()" class="btn-valider" (click)="valider()">
+        <mat-icon>check_circle</mat-icon><span>Valider & Transmettre RH</span>
+      </button>
     </div>
   </div>
 
   <!-- STEPPER -->
   <div class="stepper-bar" *ngIf="rapport()">
-    <div class="step" [class.active]="true" [class.done]="!isBrouillon()"><div class="step-dot"></div><span>Création</span></div>
+    <div class="step" [class.active]="true" [class.done]="!isBrouillon()">
+      <div class="step-dot"></div><span>Saisie</span>
+    </div>
     <div class="step-line" [class.done]="!isBrouillon()"></div>
-    <div class="step" [class.active]="isBrouillon() || isRetourne()" [class.done]="isSoumis() || isTransmis()"><div class="step-dot"></div><span>Saisie</span></div>
-    <div class="step-line" [class.done]="isSoumis() || isTransmis()"></div>
-    <div class="step" [class.active]="isSoumis()" [class.done]="isTransmis()"><div class="step-dot"></div><span>Vérif. qualité</span></div>
-    <div class="step-line" [class.done]="isTransmis()"></div>
-    <div class="step" [class.active]="isTransmis()"><div class="step-dot"></div><span>Transmis RH</span></div>
+    <div class="step" [class.active]="!isBrouillon()" [class.done]="isTransmisQualite() || isTransmisRH()">
+      <div class="step-dot"></div><span>Responsable</span>
+    </div>
+    <div class="step-line" [class.done]="isTransmisQualite() || isTransmisRH()"></div>
+    <div class="step" [class.active]="isTransmisQualite()" [class.done]="isTransmisRH()">
+      <div class="step-dot"></div><span>Qualité</span>
+    </div>
+    <div class="step-line" [class.done]="isTransmisRH()"></div>
+    <div class="step" [class.active]="isTransmisRH()">
+      <div class="step-dot"></div><span>Transmis RH</span>
+    </div>
   </div>
 
   <!-- ALERTES -->
   <div class="alerts-zone">
     <div class="alert alert-success" *ngIf="success()">{{ success() }}</div>
-    <div class="alert alert-error" *ngIf="error() && !showRetourModal()">{{ error() }}</div>
-    <div class="alert alert-retour" *ngIf="rapport()?.commentaireRetour && isRetourne()">
+    <div class="alert alert-error"   *ngIf="error() && !showRetourModal() && !showAutreModal()">{{ error() }}</div>
+    <div class="alert alert-retour"  *ngIf="rapport()?.commentaireRetour && isRetourne()">
       <mat-icon class="icon-xs">warning</mat-icon>
       <strong>Retour qualité :</strong> {{ rapport().commentaireRetour }}
     </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!--  Sprint 3 — BANDEAU SOUS-RAPPORT (agent exploitation)        -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <div class="sous-rapport-banner" *ngIf="isExploitation() && monSousRapport">
+
+    <div class="sr-banner-left">
+      <mat-icon class="sr-banner-icon">assignment_turned_in</mat-icon>
+      <div class="sr-banner-info">
+        <span class="sr-banner-title">Mon sous-rapport</span>
+        <span class="sr-banner-meta">
+          {{ monSousRapport.nbProgrammes }} programme(s) saisi(s)
+          <span *ngIf="monSousRapport.dateSoumission">
+            · soumis le {{ monSousRapport.dateSoumission | date:'dd/MM HH:mm' }}
+          </span>
+        </span>
+      </div>
+      <span [class]="'sr-badge ' + srStatutClass()">{{ srStatutLabel() }}</span>
+    </div>
+
+    <div class="sr-banner-right">
+      <!-- Motif retour -->
+      <div class="sr-motif-retour" *ngIf="srIsRetourne && monSousRapport.motifRetour">
+        <mat-icon class="icon-xs">reply</mat-icon>
+        <span>{{ monSousRapport.motifRetour }}</span>
+      </div>
+      <!-- Bouton soumettre -->
+      <button class="btn-soumettre-sr"
+              *ngIf="peutSoumettreMonSousRapport"
+              (click)="soumettreMonSousRapport()"
+              [disabled]="submittingSousRapport()">
+        <mat-icon>{{ submittingSousRapport() ? 'sync' : 'send' }}</mat-icon>
+        <span>{{ srIsRetourne ? 'Re-soumettre' : 'Soumettre mes affectations' }}</span>
+      </button>
+      <!-- Info si soumis -->
+      <div class="sr-info-soumis" *ngIf="srIsSoumis">
+        <mat-icon class="icon-xs">hourglass_top</mat-icon>
+        En attente de validation
+      </div>
+      <!-- Info si validé -->
+      <div class="sr-info-valide" *ngIf="srIsValide">
+        <mat-icon class="icon-xs">verified</mat-icon>
+        Validé par le responsable
+      </div>
+    </div>
+
   </div>
 
   <div class="fiche-body">
@@ -54,7 +112,6 @@
              [class.row-panne-autorise]="isPanneAutoriseTracteur(t)"
              [class.row-immobilise]="isImmobiliseTracteur(t)">
 
-          <!-- Identité + remorque -->
           <div class="vehicule-id-block">
             <div class="vehicule-id">
               <mat-icon class="v-icon">local_shipping</mat-icon>
@@ -65,7 +122,7 @@
               <span class="tag-panne-auto" *ngIf="isPanneAutoriseTracteur(t)"><mat-icon class="icon-xs">warning</mat-icon></span>
               <span class="tag-immobilise" *ngIf="isImmobiliseTracteur(t)"><mat-icon class="icon-xs">block</mat-icon></span>
             </div>
-            <div class="remorque-line" *ngIf="!isImmobiliseTracteur(t)">
+            <div class="remorque-line">
               <mat-icon class="icon-xs remorque-icon">link</mat-icon>
               <select class="sel-remorque" [disabled]="!canEdit()"
                 [ngModel]="remorqueParTracteur[t.idTracteur] ?? null"
@@ -74,70 +131,47 @@
                 <option *ngFor="let r of svc.remorques()" [ngValue]="r.idRemorque">{{ r.immatriculation }}</option>
               </select>
             </div>
-            <!-- Rappel remorque déjà utilisée -->
+            <!-- Rappel remorque déjà utilisée ailleurs (jaune) -->
             <div class="remorque-rappel"
                 *ngIf="getRemorqueDejaUtilisee(remorqueParTracteur[t.idTracteur], t.idTracteur) as autreTracto">
-                <mat-icon class="icon-xs">info</mat-icon>
-                  Rappel : aussi sur {{ autreTracto }}
+              <mat-icon class="icon-xs">info</mat-icon> Rappel : aussi sur {{ autreTracto }}
+            </div>
+            <!-- Rappel remorque en panne (rouge) -->
+            <div class="remorque-rappel remorque-rappel-panne"
+                *ngIf="getRemorqueStatut(remorqueParTracteur[t.idTracteur]) as statutRem">
+              <mat-icon class="icon-xs">warning</mat-icon>
+              Remorque {{ statutRem === 'EN_PANNE_IMMOBILISE' ? 'immobilisée' : 'en panne autorisée' }}
             </div>
           </div>
 
-          <!-- Immobilisé -->
+          <!-- Rappel tracteur immobilisé (rouge) — les affectations restent accessibles -->
           <div class="immobilise-msg" *ngIf="isImmobiliseTracteur(t)">
-            <mat-icon class="icon-xs">block</mat-icon> Tracteur immobilisé
+            <mat-icon class="icon-xs">block</mat-icon> Tracteur EN PANNE IMMOBILISÉ
           </div>
 
-          <!-- Slots INT + NAT -->
-          <div class="slots-inline" *ngIf="!isImmobiliseTracteur(t)">
+          <div class="slots-inline">
 
             <!-- INTERNATIONAL -->
             <div class="slot-col slot-int-col">
               <div class="slot-col-header"><mat-icon class="icon-xs">public</mat-icon><span>INT</span></div>
-
-              <!-- INT 1 -->
-              <div class="slot-block">
-                <div class="slot-line" [class.slot-saving]="isSlotSaving(tracteurKey(t.idTracteur, 'INTERNATIONAL', 1))">
-                  <span class="slot-num">1</span>
+              <div class="slot-block" *ngFor="let num of [1,2]">
+                <div class="slot-line" [class.slot-saving]="isSlotSaving(tracteurKey(t.idTracteur, 'INTERNATIONAL', num))">
+                  <span class="slot-num">{{ num }}</span>
                   <select class="sel-chauffeur" [disabled]="!canEdit()"
-                    [ngModel]="getChauffeurAff(t.idTracteur, 'INTERNATIONAL', 1)"
-                    (ngModelChange)="onChauffeurTracteur(t.idTracteur, 'INTERNATIONAL', 1, $event)">
+                    [ngModel]="getChauffeurAff(t.idTracteur, 'INTERNATIONAL', num)"
+                    (ngModelChange)="onChauffeurTracteur(t.idTracteur, 'INTERNATIONAL', num, $event)">
                     <option [ngValue]="null">vide</option>
                     <option *ngFor="let c of svc.getChauffeursInt()" [ngValue]="c.idChauffeur">{{ c.nom }} {{ c.prenom }}</option>
                   </select>
                   <select class="sel-mission" [disabled]="!canEdit()"
-                    [ngModel]="getMissionAff(t.idTracteur, 'INTERNATIONAL', 1)"
-                    (ngModelChange)="onMissionTracteur(t.idTracteur, 'INTERNATIONAL', 1, $event)">
+                    [ngModel]="getMissionAff(t.idTracteur, 'INTERNATIONAL', num)"
+                    (ngModelChange)="onMissionTracteur(t.idTracteur, 'INTERNATIONAL', num, $event)">
                     <option [ngValue]="null">—</option>
                     <option *ngFor="let m of svc.missions()" [ngValue]="m.idMission">{{ m.codeAffichage }}</option>
                   </select>
-                  <mat-icon class="icon-saving" *ngIf="isSlotSaving(tracteurKey(t.idTracteur, 'INTERNATIONAL', 1))">sync</mat-icon>
+                  <mat-icon class="icon-saving" *ngIf="isSlotSaving(tracteurKey(t.idTracteur, 'INTERNATIONAL', num))">sync</mat-icon>
                 </div>
-                <div class="tracabilite-badge" *ngIf="svc.getTracabilite(svc.progParTracteur[t.idTracteur], 'INTERNATIONAL', 1) as tr">
-                  <mat-icon class="icon-xs" [class.modif-icon]="tr.modifie">{{ tr.modifie ? 'edit' : 'person' }}</mat-icon>
-                  <span [class.modif-text]="tr.modifie">{{ tr.nom }}</span>
-                  <span class="tr-date" *ngIf="tr.date">· {{ tr.date | date:'dd/MM HH:mm' }}</span>
-                </div>
-              </div>
-
-              <!-- INT 2 -->
-              <div class="slot-block">
-                <div class="slot-line" [class.slot-saving]="isSlotSaving(tracteurKey(t.idTracteur, 'INTERNATIONAL', 2))">
-                  <span class="slot-num">2</span>
-                  <select class="sel-chauffeur" [disabled]="!canEdit()"
-                    [ngModel]="getChauffeurAff(t.idTracteur, 'INTERNATIONAL', 2)"
-                    (ngModelChange)="onChauffeurTracteur(t.idTracteur, 'INTERNATIONAL', 2, $event)">
-                    <option [ngValue]="null">vide</option>
-                    <option *ngFor="let c of svc.getChauffeursInt()" [ngValue]="c.idChauffeur">{{ c.nom }} {{ c.prenom }}</option>
-                  </select>
-                  <select class="sel-mission" [disabled]="!canEdit()"
-                    [ngModel]="getMissionAff(t.idTracteur, 'INTERNATIONAL', 2)"
-                    (ngModelChange)="onMissionTracteur(t.idTracteur, 'INTERNATIONAL', 2, $event)">
-                    <option [ngValue]="null">—</option>
-                    <option *ngFor="let m of svc.missions()" [ngValue]="m.idMission">{{ m.codeAffichage }}</option>
-                  </select>
-                  <mat-icon class="icon-saving" *ngIf="isSlotSaving(tracteurKey(t.idTracteur, 'INTERNATIONAL', 2))">sync</mat-icon>
-                </div>
-                <div class="tracabilite-badge" *ngIf="svc.getTracabilite(svc.progParTracteur[t.idTracteur], 'INTERNATIONAL', 2) as tr">
+                <div class="tracabilite-badge" *ngIf="svc.getTracabilite(svc.progParTracteur[t.idTracteur], 'INTERNATIONAL', num) as tr">
                   <mat-icon class="icon-xs" [class.modif-icon]="tr.modifie">{{ tr.modifie ? 'edit' : 'person' }}</mat-icon>
                   <span [class.modif-text]="tr.modifie">{{ tr.nom }}</span>
                   <span class="tr-date" *ngIf="tr.date">· {{ tr.date | date:'dd/MM HH:mm' }}</span>
@@ -150,51 +184,24 @@
             <!-- NATIONAL -->
             <div class="slot-col slot-nat-col">
               <div class="slot-col-header"><mat-icon class="icon-xs">flag</mat-icon><span>NAT</span></div>
-
-              <!-- NAT 1 -->
-              <div class="slot-block">
-                <div class="slot-line" [class.slot-saving]="isSlotSaving(tracteurKey(t.idTracteur, 'NATIONAL', 1))">
-                  <span class="slot-num">1</span>
+              <div class="slot-block" *ngFor="let num of [1,2]">
+                <div class="slot-line" [class.slot-saving]="isSlotSaving(tracteurKey(t.idTracteur, 'NATIONAL', num))">
+                  <span class="slot-num">{{ num }}</span>
                   <select class="sel-chauffeur" [disabled]="!canEdit()"
-                    [ngModel]="getChauffeurAff(t.idTracteur, 'NATIONAL', 1)"
-                    (ngModelChange)="onChauffeurTracteur(t.idTracteur, 'NATIONAL', 1, $event)">
+                    [ngModel]="getChauffeurAff(t.idTracteur, 'NATIONAL', num)"
+                    (ngModelChange)="onChauffeurTracteur(t.idTracteur, 'NATIONAL', num, $event)">
                     <option [ngValue]="null">vide</option>
                     <option *ngFor="let c of svc.chauffeurs()" [ngValue]="c.idChauffeur">{{ c.nom }} {{ c.prenom }}</option>
                   </select>
                   <select class="sel-mission" [disabled]="!canEdit()"
-                    [ngModel]="getMissionAff(t.idTracteur, 'NATIONAL', 1)"
-                    (ngModelChange)="onMissionTracteur(t.idTracteur, 'NATIONAL', 1, $event)">
+                    [ngModel]="getMissionAff(t.idTracteur, 'NATIONAL', num)"
+                    (ngModelChange)="onMissionTracteur(t.idTracteur, 'NATIONAL', num, $event)">
                     <option [ngValue]="null">—</option>
                     <option *ngFor="let m of svc.getMissionsNat()" [ngValue]="m.idMission">{{ m.codeAffichage }}</option>
                   </select>
-                  <mat-icon class="icon-saving" *ngIf="isSlotSaving(tracteurKey(t.idTracteur, 'NATIONAL', 1))">sync</mat-icon>
+                  <mat-icon class="icon-saving" *ngIf="isSlotSaving(tracteurKey(t.idTracteur, 'NATIONAL', num))">sync</mat-icon>
                 </div>
-                <div class="tracabilite-badge" *ngIf="svc.getTracabilite(svc.progParTracteur[t.idTracteur], 'NATIONAL', 1) as tr">
-                  <mat-icon class="icon-xs" [class.modif-icon]="tr.modifie">{{ tr.modifie ? 'edit' : 'person' }}</mat-icon>
-                  <span [class.modif-text]="tr.modifie">{{ tr.nom }}</span>
-                  <span class="tr-date" *ngIf="tr.date">· {{ tr.date | date:'dd/MM HH:mm' }}</span>
-                </div>
-              </div>
-
-              <!-- NAT 2 -->
-              <div class="slot-block">
-                <div class="slot-line" [class.slot-saving]="isSlotSaving(tracteurKey(t.idTracteur, 'NATIONAL', 2))">
-                  <span class="slot-num">2</span>
-                  <select class="sel-chauffeur" [disabled]="!canEdit()"
-                    [ngModel]="getChauffeurAff(t.idTracteur, 'NATIONAL', 2)"
-                    (ngModelChange)="onChauffeurTracteur(t.idTracteur, 'NATIONAL', 2, $event)">
-                    <option [ngValue]="null">vide</option>
-                    <option *ngFor="let c of svc.chauffeurs()" [ngValue]="c.idChauffeur">{{ c.nom }} {{ c.prenom }}</option>
-                  </select>
-                  <select class="sel-mission" [disabled]="!canEdit()"
-                    [ngModel]="getMissionAff(t.idTracteur, 'NATIONAL', 2)"
-                    (ngModelChange)="onMissionTracteur(t.idTracteur, 'NATIONAL', 2, $event)">
-                    <option [ngValue]="null">—</option>
-                    <option *ngFor="let m of svc.getMissionsNat()" [ngValue]="m.idMission">{{ m.codeAffichage }}</option>
-                  </select>
-                  <mat-icon class="icon-saving" *ngIf="isSlotSaving(tracteurKey(t.idTracteur, 'NATIONAL', 2))">sync</mat-icon>
-                </div>
-                <div class="tracabilite-badge" *ngIf="svc.getTracabilite(svc.progParTracteur[t.idTracteur], 'NATIONAL', 2) as tr">
+                <div class="tracabilite-badge" *ngIf="svc.getTracabilite(svc.progParTracteur[t.idTracteur], 'NATIONAL', num) as tr">
                   <mat-icon class="icon-xs" [class.modif-icon]="tr.modifie">{{ tr.modifie ? 'edit' : 'person' }}</mat-icon>
                   <span [class.modif-text]="tr.modifie">{{ tr.nom }}</span>
                   <span class="tr-date" *ngIf="tr.date">· {{ tr.date | date:'dd/MM HH:mm' }}</span>
@@ -202,6 +209,53 @@
               </div>
             </div>
 
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ FOURNISSEURS ══════════════════ -->
+    <div class="fiche-section">
+      <div class="section-title-bar">
+        <mat-icon class="section-icon">business</mat-icon>
+        <h2>FOURNISSEURS ({{ svc.fournisseurs.length }})</h2>
+      </div>
+      <div class="empty-section" *ngIf="svc.fournisseurs.length === 0">Aucun fournisseur</div>
+      <div class="voitures-list">
+        <div class="vehicule-row" *ngFor="let f of svc.fournisseurs">
+          <div class="vehicule-id">
+            <mat-icon class="v-icon">business</mat-icon>
+            <div class="v-details"><span class="v-immat">{{ f.nomSociete }}</span></div>
+          </div>
+          <div class="slots-inline">
+            <div class="slot-col">
+              <div class="slot-col-header"><mat-icon class="icon-xs">person</mat-icon><span>CHAUFFEUR FTA</span></div>
+              <div class="slot-block">
+                <div class="slot-line" [class.slot-saving]="isSlotSaving(fournisseurKey(f.idFournisseur))">
+                  <span class="slot-num">1</span>
+                  <select class="sel-chauffeur" [disabled]="!canEdit()"
+                    [ngModel]="getChauffeurFournisseurVal(f.idFournisseur)"
+                    (ngModelChange)="onChauffeurFournisseur(f.idFournisseur, $event)">
+                    <option [ngValue]="null">vide</option>
+                    <option *ngFor="let c of svc.chauffeurs()" [ngValue]="c.idChauffeur">
+                      {{ c.nom }} {{ c.prenom }} ({{ c.typeChauffeur === 'INTERNATIONAL' ? 'INT' : 'NAT' }})
+                    </option>
+                  </select>
+                  <select class="sel-mission" [disabled]="!canEdit()"
+                    [ngModel]="getMissionFournisseurVal(f.idFournisseur)"
+                    (ngModelChange)="onMissionFournisseur(f.idFournisseur, $event)">
+                    <option [ngValue]="null">—</option>
+                    <option *ngFor="let m of svc.missions()" [ngValue]="m.idMission">{{ m.codeAffichage }}</option>
+                  </select>
+                  <mat-icon class="icon-saving" *ngIf="isSlotSaving(fournisseurKey(f.idFournisseur))">sync</mat-icon>
+                </div>
+                <div class="tracabilite-badge" *ngIf="svc.getTracabiliteFournisseur(svc.progParFournisseur[f.idFournisseur]) as tr">
+                  <mat-icon class="icon-xs" [class.modif-icon]="tr.modifie">{{ tr.modifie ? 'edit' : 'person' }}</mat-icon>
+                  <span [class.modif-text]="tr.modifie">{{ tr.nom }}</span>
+                  <span class="tr-date" *ngIf="tr.date">· {{ tr.date | date:'dd/MM HH:mm' }}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -215,7 +269,6 @@
         <span class="section-note" *ngIf="!isAdminVS()">Affectation réservée à ADMIN_VS</span>
       </div>
       <div class="voitures-list">
-
         <div class="vehicule-row"
              *ngFor="let v of svc.voitures"
              [class.row-panne-autorise]="isPanneAutoriseVoiture(v)"
@@ -236,7 +289,6 @@
           </div>
 
           <div class="slots-inline" *ngIf="!isImmobiliseVoiture(v)">
-
             <!-- JOUR -->
             <div class="slot-col slot-jour-col">
               <div class="slot-col-header"><mat-icon class="icon-xs">wb_sunny</mat-icon><span>JOUR</span></div>
@@ -260,12 +312,8 @@
               </div>
             </div>
 
-            <!-- Case à cocher même chauffeur -->
             <div class="slot-col slot-toggle-col" *ngIf="canEditVoiture()">
-              <div class="slot-col-header">
-                <mat-icon class="icon-xs">repeat</mat-icon>
-                <span>Même chauf.</span>
-              </div>
+              <div class="slot-col-header"><mat-icon class="icon-xs">repeat</mat-icon><span>Même chauf.</span></div>
               <div class="slot-line">
                 <label class="toggle-label">
                   <input type="checkbox"
@@ -298,62 +346,65 @@
                 </div>
               </div>
             </div>
-
           </div>
         </div>
-
       </div>
     </div>
 
-    <!-- ══════════════════ FOURNISSEURS ══════════════════ -->
-    <div class="fiche-section">
+    <!-- ══════════════════ BLOC AUTRE (Sprint 3 — RH) ══════════════════ -->
+    <div class="fiche-section" *ngIf="isRH() || isAdmin() || svc.affectationsAutre().length > 0">
       <div class="section-title-bar">
-        <mat-icon class="section-icon">business</mat-icon>
-        <h2>FOURNISSEURS ({{ svc.fournisseurs.length }})</h2>
+        <mat-icon class="section-icon" style="color:#7c3aed">group_off</mat-icon>
+        <h2>BLOC AUTRE — Chauffeurs non affectés</h2>
+        <span class="section-note" *ngIf="!isRH()">Géré par RH</span>
+        <button class="btn-add-autre" *ngIf="canEditAutre()" (click)="openAutreModal()">
+          <mat-icon>add</mat-icon> Ajouter
+        </button>
       </div>
-      <div class="empty-section" *ngIf="svc.fournisseurs.length === 0">Aucun fournisseur</div>
-      <div class="voitures-list">
 
-        <div class="vehicule-row" *ngFor="let f of svc.fournisseurs">
-          <div class="vehicule-id">
-            <mat-icon class="v-icon">business</mat-icon>
-            <div class="v-details"><span class="v-immat">{{ f.nomSociete }}</span></div>
+      <!-- Liste vide -->
+      <div class="empty-section" *ngIf="svc.affectationsAutre().length === 0">
+        Aucun chauffeur dans le bloc AUTRE
+      </div>
+
+      <!-- Liste des affectations AUTRE -->
+      <div class="autre-list">
+        <div class="autre-row" *ngFor="let aa of svc.affectationsAutre()">
+
+          <div class="autre-chauffeur">
+            <mat-icon class="icon-xs">person</mat-icon>
+            <span class="autre-nom">{{ aa.nomChauffeur }} {{ aa.prenomChauffeur }}</span>
+            <span class="autre-type">{{ aa.typeChauffeur === 'INTERNATIONAL' ? 'INT' : 'NAT' }}</span>
           </div>
-          <div class="slots-inline">
-            <div class="slot-col">
-              <div class="slot-col-header">
-                <mat-icon class="icon-xs">person</mat-icon>
-                <span>CHAUFFEUR FTA</span>
-              </div>
-              <div class="slot-block">
-                <div class="slot-line" [class.slot-saving]="isSlotSaving(fournisseurKey(f.idFournisseur))">
-                  <span class="slot-num">1</span>
-                  <select class="sel-chauffeur" [disabled]="!canEdit()"
-                    [ngModel]="getChauffeurFournisseurVal(f.idFournisseur)"
-                    (ngModelChange)="onChauffeurFournisseur(f.idFournisseur, $event)">
-                    <option [ngValue]="null">vide</option>
-                    <option *ngFor="let c of svc.chauffeurs()" [ngValue]="c.idChauffeur">
-                      {{ c.nom }} {{ c.prenom }} ({{ c.typeChauffeur === 'INTERNATIONAL' ? 'INT' : 'NAT' }})
-                    </option>
-                  </select>
-                  <select class="sel-mission" [disabled]="!canEdit()"
-                    [ngModel]="getMissionFournisseurVal(f.idFournisseur)"
-                    (ngModelChange)="onMissionFournisseur(f.idFournisseur, $event)">
-                    <option [ngValue]="null">—</option>
-                    <option *ngFor="let m of svc.missions()" [ngValue]="m.idMission">{{ m.codeAffichage }}</option>
-                  </select>
-                  <mat-icon class="icon-saving" *ngIf="isSlotSaving(fournisseurKey(f.idFournisseur))">sync</mat-icon>
-                </div>
-                <div class="tracabilite-badge" *ngIf="svc.getTracabiliteFournisseur(svc.progParFournisseur[f.idFournisseur]) as tr">
-                  <mat-icon class="icon-xs" [class.modif-icon]="tr.modifie">{{ tr.modifie ? 'edit' : 'person' }}</mat-icon>
-                  <span [class.modif-text]="tr.modifie">{{ tr.nom }}</span>
-                  <span class="tr-date" *ngIf="tr.date">· {{ tr.date | date:'dd/MM HH:mm' }}</span>
-                </div>
-              </div>
-            </div>
+
+          <div class="autre-statut-bloc">
+            <span [class]="'autre-badge ' + getStatutAutreClass(aa.statutJournee)">
+              {{ getStatutAutreLabel(aa.statutJournee) }}
+            </span>
           </div>
+
+          <div class="autre-rh">
+            <mat-icon class="icon-xs">person_outline</mat-icon>
+            <span>{{ aa.usernameRh }}</span>
+          </div>
+
+          <div class="autre-actions" *ngIf="canEditAutre()">
+            <button class="btn-icon-edit" (click)="openAutreModal(aa)" title="Modifier">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button class="btn-icon-delete" (click)="supprimerAutre(aa.idAffectationAutre)" title="Supprimer">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+
         </div>
+      </div>
 
+      <!-- Résumé -->
+      <div class="autre-resume" *ngIf="svc.affectationsAutre().length > 0">
+        <span>Total : {{ svc.affectationsAutre().length }} chauffeur(s)</span>
+        <span>·</span>
+        <span>Jours comptabilisés : {{ svc.affectationsAutre() | sumValeur }}</span>
       </div>
     </div>
 
@@ -364,11 +415,11 @@
   <div class="loading-screen"><mat-icon class="spin">sync</mat-icon> Chargement...</div>
 </ng-template>
 
-<!-- MODAL RETOUR -->
+<!-- ══════════════════ MODAL RETOUR QUALITÉ ══════════════════ -->
 <div class="modal-overlay" *ngIf="showRetourModal()" (click)="showRetourModal.set(false)">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2><mat-icon class="icon-xs">reply</mat-icon> Retourner à l'Exploitation</h2>
+      <h2><mat-icon class="icon-xs">reply</mat-icon> Retourner au Responsable</h2>
       <button class="btn-close" (click)="showRetourModal.set(false)"><mat-icon>close</mat-icon></button>
     </div>
     <div class="modal-body">
@@ -386,7 +437,58 @@
   </div>
 </div>
 
-<!-- MODAL HISTORIQUE -->
+<!-- ══════════════════ MODAL BLOC AUTRE ══════════════════ -->
+<div class="modal-overlay" *ngIf="showAutreModal()" (click)="showAutreModal.set(false)">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2><mat-icon class="icon-xs">group_off</mat-icon>
+        {{ autreEnEdition() ? 'Modifier' : 'Ajouter au bloc AUTRE' }}
+      </h2>
+      <button class="btn-close" (click)="showAutreModal.set(false)"><mat-icon>close</mat-icon></button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-error" *ngIf="error()">{{ error() }}</div>
+
+      <!-- Chauffeur -->
+      <div class="form-group">
+        <label class="form-label">Chauffeur *</label>
+        <select class="form-control" [(ngModel)]="autreForm.idChauffeur"
+                [disabled]="!!autreEnEdition()">
+          <option [ngValue]="null">— Sélectionner —</option>
+          <option *ngFor="let c of svc.getChauffeursDisponiblesAutre()"
+                  [ngValue]="c.idChauffeur">
+            {{ c.nom }} {{ c.prenom }} ({{ c.typeChauffeur === 'INTERNATIONAL' ? 'INT' : 'NAT' }})
+          </option>
+          <!-- En édition : afficher le chauffeur actuel même s'il est déjà dans la liste -->
+          <option *ngIf="autreEnEdition()" [ngValue]="autreEnEdition()!.idChauffeur">
+            {{ autreEnEdition()!.nomChauffeur }} {{ autreEnEdition()!.prenomChauffeur }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Statut journée -->
+      <div class="form-group">
+        <label class="form-label">Statut *</label>
+        <select class="form-control" [(ngModel)]="autreForm.statutJournee">
+          <option value="DEPOT">Dépôt</option>
+          <option value="MALADIE">Maladie</option>
+          <option value="REPOS">Repos</option>
+        </select>
+      </div>
+
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showAutreModal.set(false)">Annuler</button>
+      <button class="btn-primary" (click)="sauvegarderAutre()" [disabled]="savingAutre()">
+        <mat-icon>{{ savingAutre() ? 'sync' : 'save' }}</mat-icon>
+        {{ autreEnEdition() ? 'Modifier' : 'Ajouter' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ MODAL HISTORIQUE ══════════════════ -->
 <div class="modal-overlay" *ngIf="showHistoriqueModal()" (click)="showHistoriqueModal.set(false)">
   <div class="modal modal-lg" (click)="$event.stopPropagation()">
     <div class="modal-header">

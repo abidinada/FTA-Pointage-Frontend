@@ -1,0 +1,261 @@
+<div class="absences-page">
+
+  <!-- ── HEADER ──────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="header-left">
+      <mat-icon class="header-icon">event_busy</mat-icon>
+      <div>
+        <h1 class="page-title">Absences</h1>
+        <p class="page-subtitle">Gestion des absences chauffeurs</p>
+      </div>
+    </div>
+    <button class="btn-primary" *ngIf="canEdit()" (click)="openModal()">
+      <mat-icon>add</mat-icon> Nouvelle absence
+    </button>
+  </div>
+
+  <!-- ── STATS ────────────────────────────────────────────────────── -->
+  <div class="stats-row">
+    <div class="stat-card stat-encours">
+      <div class="stat-number">{{ nbEnCours }}</div>
+      <div class="stat-label">En cours aujourd'hui</div>
+    </div>
+    <div class="stat-card stat-avenir">
+      <div class="stat-number">{{ nbAVenir }}</div>
+      <div class="stat-label">À venir</div>
+    </div>
+    <div class="stat-card stat-total">
+      <div class="stat-number">{{ absences().length }}</div>
+      <div class="stat-label">Total enregistrées</div>
+    </div>
+    <div class="stat-card stat-termine">
+      <div class="stat-number">{{ nbTerminees }}</div>
+      <div class="stat-label">Terminées</div>
+    </div>
+  </div>
+
+  <!-- ── ALERTES ──────────────────────────────────────────────────── -->
+  <div class="alerts-zone">
+    <div class="alert alert-success" *ngIf="success()">
+      <mat-icon>check_circle</mat-icon> {{ success() }}
+    </div>
+    <div class="alert alert-error" *ngIf="error() && !showModal()">
+      <mat-icon>error</mat-icon> {{ error() }}
+    </div>
+  </div>
+
+  <!-- ── FILTRES ──────────────────────────────────────────────────── -->
+  <div class="filtres-bar">
+    <div class="filtre-group">
+      <mat-icon class="filtre-icon">search</mat-icon>
+      <input class="filtre-input"
+             placeholder="Rechercher un chauffeur..."
+             [ngModel]="filtreNom()"
+             (ngModelChange)="filtreNom.set($event)">
+    </div>
+    <div class="filtre-group">
+      <mat-icon class="filtre-icon">filter_list</mat-icon>
+      <select class="filtre-select"
+              [ngModel]="filtreType()"
+              (ngModelChange)="filtreType.set($event)">
+        <option value="">Tous les types</option>
+        <option *ngFor="let t of typesAbsence()" [value]="t.idTypeAbsence">
+          {{ getTypeLabel(t.libelle) }}
+        </option>
+      </select>
+    </div>
+    <div class="filtre-count">{{ absencesFiltrees().length }} absence(s)</div>
+  </div>
+
+  <!-- ── LOADING ──────────────────────────────────────────────────── -->
+  <div class="loading-screen" *ngIf="loading()">
+    <mat-icon class="spin">sync</mat-icon> Chargement...
+  </div>
+
+  <!-- ── EMPTY ────────────────────────────────────────────────────── -->
+  <div class="empty-state" *ngIf="!loading() && absencesFiltrees().length === 0">
+    <mat-icon class="empty-icon">event_available</mat-icon>
+    <p>Aucune absence trouvée</p>
+  </div>
+
+  <!-- ── TABLE ────────────────────────────────────────────────────── -->
+  <div class="table-wrapper" *ngIf="!loading() && absencesFiltrees().length > 0">
+    <table class="absences-table">
+      <thead>
+        <tr>
+          <th class="th-chauffeur">Chauffeur</th>
+          <th class="th-type">Type</th>
+          <th class="th-periode">Période</th>
+          <th class="th-jours">Durée</th>
+          <th class="th-statut">Statut</th>
+          <th class="th-commentaire">Commentaire</th>
+          <th class="th-createur">Créé par</th>
+          <th class="th-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let a of absencesFiltrees()"
+            [class.row-encours]="isAbsenceActive(a)"
+            [class.row-avenir]="isAbsenceAVenir(a)">
+
+          <!-- Chauffeur -->
+          <td class="td-chauffeur">
+            <div class="chauffeur-cell">
+              <span class="type-dot" [class.dot-int]="a.typeChauffeur === 'INTERNATIONAL'"
+                                       [class.dot-nat]="a.typeChauffeur === 'NATIONAL'"></span>
+              <div class="chauffeur-info">
+                <span class="chauffeur-nom">{{ a.nomChauffeur }} {{ a.prenomChauffeur }}</span>
+                <span class="chauffeur-type">{{ a.typeChauffeur === 'INTERNATIONAL' ? 'International' : 'National' }}</span>
+              </div>
+            </div>
+          </td>
+
+          <!-- Type -->
+          <td class="td-type">
+            <span [class]="'type-badge ' + getTypeClass(a.libelleTypeAbsence)">
+              {{ getTypeLabel(a.libelleTypeAbsence) }}
+            </span>
+          </td>
+
+          <!-- Période -->
+          <td class="td-periode">
+            <div class="periode-dates">
+              <span>{{ a.dateDebut | date:'dd/MM/yyyy' }}</span>
+              <mat-icon class="icon-arrow-sm">arrow_forward</mat-icon>
+              <span>{{ a.dateFin | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </td>
+
+          <!-- Durée -->
+          <td class="td-jours">
+            <span class="jours-badge">{{ getNbJours(a) }} j</span>
+          </td>
+
+          <!-- Statut -->
+          <td class="td-statut">
+            <span [class]="'statut-pill ' + getStatutClass(a)">
+              {{ getStatutAbsence(a) }}
+            </span>
+          </td>
+
+          <!-- Commentaire -->
+          <td class="td-commentaire">
+            <span class="commentaire-text" *ngIf="a.commentaire" [title]="a.commentaire">
+              {{ a.commentaire }}
+            </span>
+            <span class="commentaire-empty" *ngIf="!a.commentaire">—</span>
+          </td>
+
+          <!-- Créateur -->
+          <td class="td-createur">{{ a.usernameCreateur }}</td>
+
+          <!-- Actions -->
+          <td class="td-actions" *ngIf="canEdit()">
+            <button class="btn-icon-edit" (click)="openModal(a)" title="Modifier">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button class="btn-icon-delete" (click)="supprimer(a.idAbsence)" title="Supprimer">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+          <td class="td-actions" *ngIf="!canEdit()">—</td>
+
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ══════════════════ MODAL ══════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showModal()" (click)="fermerModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <mat-icon class="modal-icon">event_busy</mat-icon>
+        <h2>{{ enEdition() ? "Modifier l'absence" : 'Nouvelle absence' }}</h2>
+      </div>
+      <button class="btn-close" (click)="fermerModal()"><mat-icon>close</mat-icon></button>
+    </div>
+
+    <div class="modal-body">
+      <div class="alert alert-error" *ngIf="error()">
+        <mat-icon>error</mat-icon> {{ error() }}
+      </div>
+
+      <!-- Chauffeur -->
+      <div class="form-group">
+        <label class="form-label">
+          <mat-icon class="icon-xs">person</mat-icon> Chauffeur *
+        </label>
+        <select class="form-control"
+                [(ngModel)]="form.idChauffeur"
+                [disabled]="!!enEdition()">
+          <option [ngValue]="null">— Sélectionner un chauffeur —</option>
+          <option *ngFor="let c of chauffeurs()" [ngValue]="c.idChauffeur">
+            {{ c.nom }} {{ c.prenom }}
+            ({{ c.typeChauffeur === 'INTERNATIONAL' ? 'INT' : 'NAT' }})
+          </option>
+        </select>
+      </div>
+
+      <!-- Type -->
+      <div class="form-group">
+        <label class="form-label">
+          <mat-icon class="icon-xs">category</mat-icon> Type d'absence *
+        </label>
+        <select class="form-control" [(ngModel)]="form.idTypeAbsence">
+          <option [ngValue]="null">— Sélectionner un type —</option>
+          <option *ngFor="let t of typesAbsence()" [ngValue]="t.idTypeAbsence">
+            {{ getTypeLabel(t.libelle) }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Dates -->
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="form-label">
+            <mat-icon class="icon-xs">event</mat-icon> Date de début *
+          </label>
+          <input type="date" class="form-control" [(ngModel)]="form.dateDebut">
+        </div>
+        <div class="form-group">
+          <label class="form-label">
+            <mat-icon class="icon-xs">event</mat-icon> Date de fin *
+          </label>
+          <input type="date" class="form-control"
+                 [(ngModel)]="form.dateFin"
+                 [min]="form.dateDebut">
+        </div>
+      </div>
+
+      <!-- Durée calculée -->
+      <div class="duree-info"
+           *ngIf="form.dateDebut && form.dateFin && form.dateFin >= form.dateDebut">
+        <mat-icon class="icon-xs">schedule</mat-icon>
+        Durée : <strong>{{ getNbJoursForm() }} jour(s)</strong>
+      </div>
+
+      <!-- Commentaire -->
+      <div class="form-group">
+        <label class="form-label">
+          <mat-icon class="icon-xs">chat_bubble_outline</mat-icon> Commentaire (optionnel)
+        </label>
+        <textarea class="form-control" rows="3"
+                  [(ngModel)]="form.commentaire"
+                  placeholder="Précisions supplémentaires..."></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="fermerModal()">Annuler</button>
+      <button class="btn-primary" (click)="sauvegarder()" [disabled]="saving()">
+        <mat-icon>{{ saving() ? 'sync' : 'save' }}</mat-icon>
+        {{ enEdition() ? 'Modifier' : 'Enregistrer' }}
+      </button>
+    </div>
+
+  </div>
+</div>

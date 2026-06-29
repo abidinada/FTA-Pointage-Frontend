@@ -1,0 +1,192 @@
+<div class="calendrier-page">
+
+  <!-- ── HEADER ──────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="header-left">
+      <mat-icon class="header-icon">calendar_month</mat-icon>
+      <div>
+        <h1 class="page-title">Pointage Mensuel</h1>
+        <p class="page-subtitle">Vue calendrier</p>
+      </div>
+    </div>
+    <button class="btn-generer" *ngIf="canEdit()" (click)="generer()" [disabled]="generating()">
+      <mat-icon [class.spin]="generating()">{{ generating() ? 'sync' : 'playlist_add_check' }}</mat-icon>
+      {{ generating() ? 'Génération...' : (estMoisEnCours() ? 'Générer le pointage' : 'Générer le mois') }}
+    </button>
+    <button class="btn-export" *ngIf="canEdit()" (click)="exporterExcel()" [disabled]="exportingExcel()">
+      <mat-icon [class.spin]="exportingExcel()">{{ exportingExcel() ? 'sync' : 'download' }}</mat-icon>
+      {{ exportingExcel() ? 'Export...' : 'Exporter Excel' }}
+    </button>
+  </div>
+
+  <!-- ── NAVIGATION MOIS ─────────────────────────────────────────── -->
+  <div class="mois-nav">
+    <button class="btn-nav" (click)="changerMois(-1)"><mat-icon>chevron_left</mat-icon></button>
+    <div class="mois-display">
+      <select class="mois-select" [ngModel]="filtreMois()" (ngModelChange)="filtreMois.set($event); charger()">
+        <option *ngFor="let m of moisList" [value]="m.val">{{ m.label }}</option>
+      </select>
+      <select class="annee-select" [ngModel]="filtreAnnee()" (ngModelChange)="filtreAnnee.set($event); charger()">
+        <option *ngFor="let a of annees" [value]="a">{{ a }}</option>
+      </select>
+    </div>
+    <button class="btn-nav" (click)="changerMois(1)"><mat-icon>chevron_right</mat-icon></button>
+
+    <div class="filtre-search">
+      <mat-icon class="filtre-icon">search</mat-icon>
+      <input placeholder="Rechercher un chauffeur..."
+             [ngModel]="filtreNom()" (ngModelChange)="filtreNom.set($event)">
+    </div>
+    <div class="filtre-count">{{ pointagesFiltres().length }} chauffeur(s)</div>
+  </div>
+
+  <!-- ── ALERTES ──────────────────────────────────────────────────── -->
+  <div class="alerts-zone">
+    <div class="alert alert-success" *ngIf="success()"><mat-icon>check_circle</mat-icon>{{ success() }}</div>
+    <div class="alert alert-error" *ngIf="error() && !showCorrModal()"><mat-icon>error</mat-icon>{{ error() }}</div>
+  </div>
+
+  <!-- ── LOADING / EMPTY ─────────────────────────────────────────── -->
+  <div class="loading-screen" *ngIf="loading()"><mat-icon class="spin">sync</mat-icon> Chargement...</div>
+
+  <div class="empty-state" *ngIf="!loading() && pointages().length === 0">
+    <mat-icon class="empty-icon">calendar_month</mat-icon>
+    <p>Aucun pointage pour ce mois</p>
+    <p class="empty-hint" *ngIf="canEdit()">Cliquez sur "Générer" pour créer le pointage</p>
+  </div>
+
+  <!-- ── LÉGENDE ──────────────────────────────────────────────────── -->
+  <div class="legende" *ngIf="!loading() && pointages().length > 0">
+    <span class="legende-item"><span class="dot cell-nat"></span> National</span>
+    <span class="legende-item"><span class="dot cell-int"></span> International</span>
+    <span class="legende-item"><span class="dot cell-mixte"></span> Mixte (N/I)</span>
+    <span class="legende-item"><span class="dot cell-depot"></span> Dépôt</span>
+    <span class="legende-item"><span class="dot cell-vide"></span> Repos / Absent</span>
+  </div>
+
+  <!-- ── TABLE CALENDRIER ─────────────────────────────────────────── -->
+  <div class="table-scroll" *ngIf="!loading() && pointagesFiltres().length > 0">
+    <table class="calendrier-table">
+      <thead>
+        <tr>
+          <th class="th-chauffeur th-sticky">Chauffeur</th>
+          <th class="th-embauche">Date d'embauche</th>
+          <th class="th-jour" *ngFor="let jour of joursDuMois()" [class.th-weekend]="isWeekend(jour)">
+            <div class="th-jour-content">
+              <span class="th-jour-num">{{ jour }}</span>
+              <span class="th-jour-label">{{ getJourLabel(jour) }}</span>
+            </div>
+          </th>
+          <th class="th-total">Total</th>
+          <th class="th-statut">Statut</th>
+          <th class="th-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of pointagesFiltres()">
+
+          <td class="td-chauffeur th-sticky">
+            <span class="chauffeur-nom">{{ p.nomChauffeur }} {{ p.prenomChauffeur }}</span>
+          </td>
+
+          <td class="td-embauche">
+            {{ p.dateEmbauche ? (p.dateEmbauche | date:'dd/MM/yyyy') : '—' }}
+          </td>
+
+          <td class="td-jour"
+              *ngFor="let jour of joursDuMois()"
+              [class.td-weekend]="isWeekend(jour)"
+              [class.td-future]="isJourFutur(jour)"
+              [class.td-clickable]="canEdit() && p.statutPointage !== 'VALIDE_RH' && !isJourFutur(jour)"
+              (click)="ouvrirCorrection(p, jour)">
+            <div class="cellule" [class]="getCelluleClass(getJournee(p, jour)?.codeAffichage)"
+                 *ngIf="!isJourFutur(jour)">
+              <span class="cellule-code">{{ getJournee(p, jour)?.codeAffichage || '0' }}</span>
+            </div>
+          </td>
+
+          <td class="td-total">{{ p.totalJoursTravailles | number:'1.2-2' }}</td>
+
+          <td class="td-statut">
+            <span [class]="'statut-badge ' + getStatutClass(p.statutPointage)">
+              {{ getStatutLabel(p.statutPointage) }}
+            </span>
+          </td>
+
+          <td class="td-actions">
+            <button class="btn-valider-sm" *ngIf="peutValider(p)" (click)="valider(p)" title="Valider">
+              <mat-icon>check_circle</mat-icon>
+            </button>
+          </td>
+
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ══════════════════ MODAL CORRECTION ══════════════════════════ -->
+<div class="modal-overlay" *ngIf="showCorrModal()" (click)="showCorrModal.set(false)">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <mat-icon class="modal-icon">edit_calendar</mat-icon>
+        <h2>Corriger la journée</h2>
+      </div>
+      <button class="btn-close" (click)="showCorrModal.set(false)"><mat-icon>close</mat-icon></button>
+    </div>
+
+    <div class="modal-body">
+      <div class="alert alert-error" *ngIf="error()"><mat-icon>error</mat-icon>{{ error() }}</div>
+
+      <div class="corr-info" *ngIf="corrChauffeur() && corrJournee()">
+        <mat-icon class="icon-xs">person</mat-icon>
+        {{ corrChauffeur()!.nomChauffeur }} {{ corrChauffeur()!.prenomChauffeur }}
+        <span class="corr-date">· {{ corrJournee()!.dateJournee | date:'EEEE dd MMMM yyyy' }}</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Valeur de la journée *</label>
+        <div class="valeur-radio-group">
+          <label class="valeur-radio" [class.selected]="corrValeur === '0.00'">
+            <input type="radio" [(ngModel)]="corrValeur" value="0.00">
+            <span>0 — Absent / Repos</span>
+          </label>
+          <label class="valeur-radio" [class.selected]="corrValeur === '0.50'">
+            <input type="radio" [(ngModel)]="corrValeur" value="0.50">
+            <span>0.5 — Demi-journée</span>
+          </label>
+          <label class="valeur-radio" [class.selected]="corrValeur === '1.00'">
+            <input type="radio" [(ngModel)]="corrValeur" value="1.00">
+            <span>1 — Journée complète</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="corrValeur !== '0.00'">
+        <label class="form-label">Code (optionnel)</label>
+        <select class="form-control" [(ngModel)]="corrCode">
+          <option value="N">N — National</option>
+          <option value="I">I — International</option>
+          <option value="N/0">N/0 — National matin</option>
+          <option value="0/N">0/N — National après-midi</option>
+          <option value="I/0">I/0 — International matin</option>
+          <option value="0/I">0/I — International après-midi</option>
+          <option value="N/I">N/I — Mixte (matin NAT)</option>
+          <option value="I/N">I/N — Mixte (matin INT)</option>
+          <option value="DEPOT">DEPOT</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showCorrModal.set(false)">Annuler</button>
+      <button class="btn-primary" (click)="sauvegarderCorrection()">
+        <mat-icon>save</mat-icon> Corriger
+      </button>
+    </div>
+
+  </div>
+</div>

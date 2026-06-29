@@ -84,8 +84,17 @@ export class SidebarComponent {
         icon: 'notifications',
         route: '/notifications',
         depts: ['ADMIN', 'EXPLOITATION_NATIONALE', 'EXPLOITATION_INTERNATIONALE', 'QUALITE', 'RH', 'MAINTENANCE','ADMIN_VS', 'RESPONSABLE_EXPLOITATION']
+      },
+      { label: 'Absences',
+        icon: 'event_busy',
+        route: '/absences',
+        depts: ['ADMIN', 'RH']
+      },
+      { label: 'Pointage Mensuel',
+        icon: 'access_time',
+        route: '/pointage-mensuel',
+        depts: ['ADMIN','RH']
       }
-
     ];
 
     return all.filter(item => item.depts.includes(dept));

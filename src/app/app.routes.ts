@@ -73,6 +73,18 @@ export const routes: Routes = [
         path: 'marques',
         canActivate: [authGuard],
         loadComponent: () => import('./features/marques/marques.component').then(m => m.MarquesComponent)
+      },
+      // ── Sprint 3 ──────────────────────────────────────────────────
+      { path: 'absences',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/absences/absences.component').then(m => m.AbsencesComponent)
+      },
+      {
+        path: 'pointage-mensuel',
+        canActivate: [authGuard],
+        loadComponent: () =>
+        import('./features/pointage-mensuel/pointage-mensuel.component')
+        .then(m => m.PointageMensuelComponent),
       }
     ],
   },

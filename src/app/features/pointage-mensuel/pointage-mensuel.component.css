@@ -8,6 +8,8 @@
 .page-title   { font-size: 24px; font-weight: 700; margin: 0; color: #1e293b; }
 .page-subtitle { margin: 0; font-size: 13px; color: #64748b; }
 
+.header-actions { display: flex; gap: 10px; }
+
 .btn-generer {
   display: flex; align-items: center; gap: 8px;
   background: #0369a1; color: white; border: none;
@@ -16,19 +18,18 @@
 }
 .btn-generer:hover    { background: #075985; }
 .btn-generer:disabled { opacity: 0.6; cursor: not-allowed; }
-.spin { animation: spin 1s linear infinite; }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 .btn-export {
   display: flex; align-items: center; gap: 8px;
   background: #16a34a; color: white; border: none;
   border-radius: 8px; padding: 12px 22px;
   font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;
-  margin-left: 10px;
 }
 .btn-export:hover    { background: #15803d; }
 .btn-export:disabled { opacity: 0.6; cursor: not-allowed; }
- 
+
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 /* ── Navigation mois ─────────────────────────────────────────────── */
 .mois-nav {
@@ -151,13 +152,23 @@
   display: flex; align-items: center; justify-content: center;
   z-index: 1000; backdrop-filter: blur(2px);
 }
-.modal { background: white; border-radius: 16px; width: 460px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
-.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; border-bottom: 1px solid #f1f5f9; }
+.modal {
+  background: white; border-radius: 16px; width: 480px;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px 16px; border-bottom: 1px solid #f1f5f9;
+}
 .modal-header-left { display: flex; align-items: center; gap: 10px; }
 .modal-icon { color: #0369a1; }
 .modal-header h2 { margin: 0; font-size: 18px; font-weight: 700; color: #1e293b; }
 .modal-body { padding: 20px 24px; }
-.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid #f1f5f9; }
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 16px 24px; border-top: 1px solid #f1f5f9;
+}
 
 .btn-close { background: transparent; border: none; cursor: pointer; color: #94a3b8; padding: 4px; }
 .btn-close:hover { color: #334155; }
@@ -172,21 +183,7 @@
 .icon-xs { font-size: 16px !important; width: 16px !important; height: 16px !important; vertical-align: middle; }
 
 .form-group { margin-bottom: 16px; }
-.form-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px; }
-.form-control {
-  width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0;
-  border-radius: 8px; font-size: 14px; background: #f8fafc; box-sizing: border-box;
-}
-
-.valeur-radio-group { display: flex; flex-direction: column; gap: 8px; }
-.valeur-radio {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 16px; border: 2px solid #e2e8f0;
-  border-radius: 8px; cursor: pointer; transition: border-color 0.2s, background 0.2s;
-}
-.valeur-radio:hover    { border-color: #0369a1; background: #f0f9ff; }
-.valeur-radio.selected { border-color: #0369a1; background: #e0f2fe; }
-.valeur-radio span     { font-size: 14px; font-weight: 500; color: #334155; }
+.form-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 10px; }
 
 .btn-primary {
   display: flex; align-items: center; gap: 6px;
@@ -194,6 +191,7 @@
   border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer;
 }
 .btn-primary:hover { background: #075985; }
+
 .btn-secondary {
   display: flex; align-items: center; gap: 6px;
   background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
@@ -201,9 +199,44 @@
 }
 .btn-secondary:hover { background: #e2e8f0; }
 
+/* ── Code grid (modal correction) ───────────────────────────────── */
+.code-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.code-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; padding: 12px 8px;
+  border: 2px solid #e2e8f0; border-radius: 8px;
+  background: white; cursor: pointer; transition: all 0.15s;
+}
+.code-btn:hover { border-color: #94a3b8; background: #f8fafc; }
+
+.code-label { font-size: 15px; font-weight: 700; color: #1e293b; }
+.code-desc  { font-size: 10px; color: #94a3b8; }
+
+.code-btn-nat.active   { border-color: #166534; background: #dcfce7; }
+.code-btn-nat.active .code-label { color: #166534; }
+
+.code-btn-int.active   { border-color: #1e40af; background: #dbeafe; }
+.code-btn-int.active .code-label { color: #1e40af; }
+
+.code-btn-mixte.active { border-color: #92400e; background: #fef3c7; }
+.code-btn-mixte.active .code-label { color: #92400e; }
+
+.code-btn-depot.active { border-color: #6d28d9; background: #ede9fe; }
+.code-btn-depot.active .code-label { color: #6d28d9; }
+
+.code-btn-vide.active  { border-color: #64748b; background: #f1f5f9; }
+.code-btn-vide.active .code-label { color: #64748b; }
+
 /* ── Responsive ──────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .calendrier-page { padding: 12px; }
   .mois-nav { flex-wrap: wrap; }
+  .header-actions { flex-direction: column; gap: 6px; }
   .modal { width: calc(100vw - 32px); }
+  .code-grid { grid-template-columns: repeat(2, 1fr); }
 }

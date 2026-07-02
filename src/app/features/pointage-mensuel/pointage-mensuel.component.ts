@@ -40,10 +40,10 @@ export class PointageMensuelComponent implements OnInit {
 
   private apiUrl = 'http://localhost:8080/api';
 
-  exportingExcel = signal(false);
   pointages   = signal<PointageLigne[]>([]);
   loading     = signal(false);
   generating  = signal(false);
+  exportingExcel = signal(false);
   error       = signal('');
   success     = signal('');
 
@@ -54,8 +54,21 @@ export class PointageMensuelComponent implements OnInit {
   showCorrModal  = signal(false);
   corrChauffeur  = signal<PointageLigne | null>(null);
   corrJournee    = signal<JourneeTravail | null>(null);
-  corrValeur     = '1.00';
-  corrCode       = '';
+  corrCode       = '0';
+
+  // ── Codes disponibles pour la correction ──────────────────────────
+  codesDisponibles = [
+    { code: 'N',     label: 'National',          type: 'nat'   },
+    { code: 'I',     label: 'International',     type: 'int'   },
+    { code: 'N/I',   label: 'Mixte (matin NAT)', type: 'mixte' },
+    { code: 'I/N',   label: 'Mixte (matin INT)', type: 'mixte' },
+    { code: 'N/0',   label: 'NAT matin',         type: 'nat'   },
+    { code: '0/N',   label: 'NAT après-midi',    type: 'nat'   },
+    { code: 'I/0',   label: 'INT matin',         type: 'int'   },
+    { code: '0/I',   label: 'INT après-midi',    type: 'int'   },
+    { code: 'DEPOT', label: 'Dépôt',             type: 'depot' },
+    { code: '0',     label: 'Absent / Repos',    type: 'vide'  }
+  ];
 
   annees = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
   moisList = [
@@ -95,7 +108,6 @@ export class PointageMensuelComponent implements OnInit {
 
   charger() {
     this.loading.set(true);
-    this.error.set('');
     this.http.get<PointageLigne[]>(
       `${this.apiUrl}/pointage/calendrier?mois=${this.filtreMois()}&annee=${this.filtreAnnee()}`
     ).subscribe({
@@ -137,31 +149,32 @@ export class PointageMensuelComponent implements OnInit {
     });
   }
 
+  // ── Export Excel ──────────────────────────────────────────────────
+
   exporterExcel() {
-  this.exportingExcel.set(true);
-  this.error.set('');
- 
-  this.http.get(
-    `${this.apiUrl}/pointage/export-excel?mois=${this.filtreMois()}&annee=${this.filtreAnnee()}`,
-    { responseType: 'blob' }
-  ).subscribe({
-    next: (blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `pointage_${this.filtreMois()}_${this.filtreAnnee()}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      this.exportingExcel.set(false);
-    },
-    error: (err) => {
-      this.exportingExcel.set(false);
-      this.error.set('Erreur lors de l\'export Excel');
-    }
-  });
-}
+    this.exportingExcel.set(true);
+    this.error.set('');
+    this.http.get(
+      `${this.apiUrl}/pointage/export-excel?mois=${this.filtreMois()}&annee=${this.filtreAnnee()}`,
+      { responseType: 'blob' }
+    ).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pointage_${this.filtreMois()}_${this.filtreAnnee()}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.exportingExcel.set(false);
+      },
+      error: () => {
+        this.exportingExcel.set(false);
+        this.error.set("Erreur lors de l'export Excel");
+      }
+    });
+  }
 
   // ── Lookup jour → JourneeTravail ───────────────────────────────────
 
@@ -193,8 +206,8 @@ export class PointageMensuelComponent implements OnInit {
     const j = this.getJournee(p, jour);
     this.corrChauffeur.set(p);
     this.corrJournee.set(j);
-    this.corrValeur = j ? j.valeurJournee.toFixed(2) : '0.00';
-    this.corrCode   = j ? j.codeAffichage : '0';
+    // Pré-sélectionner le code actuel de la journée
+    this.corrCode = j ? j.codeAffichage : '0';
     this.error.set('');
     this.showCorrModal.set(true);
   }
@@ -204,9 +217,9 @@ export class PointageMensuelComponent implements OnInit {
     const j = this.corrJournee();
     if (!p || !j) return;
 
-    this.http.put<PointageLigne>(
+    this.http.put<any>(
       `${this.apiUrl}/pointage/${p.idPointageMensuel}/journees/${j.idJourneeTravail}/corriger`,
-      { valeurJournee: parseFloat(this.corrValeur), codeAffichage: this.corrCode }
+      { codeAffichage: this.corrCode }
     ).subscribe({
       next: () => {
         this.showCorrModal.set(false);
@@ -263,12 +276,20 @@ export class PointageMensuelComponent implements OnInit {
 
   getCelluleClass(code: string | undefined): string {
     if (!code) return 'cell-empty';
-    if (code === '0')      return 'cell-vide';
-    if (code === 'DEPOT')  return 'cell-depot';
-    if (code === 'N')      return 'cell-nat';
-    if (code === 'I')      return 'cell-int';
+    if (code === '0')       return 'cell-vide';
+    if (code === 'DEPOT')   return 'cell-depot';
+    if (code === 'N')       return 'cell-nat';
+    if (code === 'I')       return 'cell-int';
     if (code.includes('/')) return 'cell-mixte';
     return 'cell-vide';
+  }
+
+  getCodeClass(code: string): string {
+    if (code === 'N' || code === 'N/0' || code === '0/N') return 'nat';
+    if (code === 'I' || code === 'I/0' || code === '0/I') return 'int';
+    if (code === 'N/I' || code === 'I/N')                 return 'mixte';
+    if (code === 'DEPOT')                                  return 'depot';
+    return 'vide';
   }
 
   getJourLabel(jour: number): string {

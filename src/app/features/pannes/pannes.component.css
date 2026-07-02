@@ -1,0 +1,259 @@
+/* ── Page ────────────────────────────────────────────────────────── */
+.pannes-page { padding: 24px; max-width: 1200px; margin: 0 auto; }
+
+/* ── Header ──────────────────────────────────────────────────────── */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.header-left  { display: flex; align-items: center; gap: 16px; }
+.header-icon  { font-size: 36px; width: 36px; height: 36px; color: #dc2626; }
+.page-title   { font-size: 24px; font-weight: 700; margin: 0; color: #1e293b; }
+.page-subtitle { margin: 0; font-size: 13px; color: #64748b; }
+
+.btn-primary {
+  display: flex; align-items: center; gap: 6px;
+  background: #dc2626; color: white; border: none;
+  border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary:hover    { background: #b91c1c; }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-secondary {
+  display: flex; align-items: center; gap: 6px;
+  background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
+  border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.btn-secondary:hover { background: #e2e8f0; }
+
+.btn-close { background: transparent; border: none; cursor: pointer; color: #94a3b8; padding: 4px; }
+.btn-close:hover { color: #334155; }
+
+.btn-icon-delete {
+  background: transparent; border: none; cursor: pointer; color: #64748b;
+  padding: 4px; border-radius: 4px;
+}
+.btn-icon-delete:hover { color: #ef4444; background: #fef2f2; }
+
+/* ── Stats ───────────────────────────────────────────────────────── */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: white; border-radius: 12px; padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08); text-align: center; border-top: 4px solid transparent;
+}
+.stat-ouvertes   { border-top-color: #dc2626; }
+.stat-immobilise { border-top-color: #991b1b; }
+.stat-autorise   { border-top-color: #f59e0b; }
+.stat-cloturees  { border-top-color: #10b981; }
+.stat-number { font-size: 32px; font-weight: 700; color: #1e293b; }
+.stat-label  { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+/* ── Alertes ─────────────────────────────────────────────────────── */
+.alerts-zone { margin-bottom: 16px; }
+.alert { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 8px; }
+.alert-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+.alert-error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+/* ── Filtres ─────────────────────────────────────────────────────── */
+.filtres-bar {
+  display: flex; align-items: center; gap: 12px; background: white; border-radius: 10px;
+  padding: 10px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 20px;
+}
+.filtre-tabs { display: flex; gap: 4px; background: #f1f5f9; border-radius: 8px; padding: 4px; }
+.tab {
+  border: none; background: transparent; padding: 8px 16px; border-radius: 6px;
+  font-size: 13px; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.2s;
+}
+.tab.active { background: white; color: #1e293b; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+.filtre-select {
+  border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; font-size: 13px; background: #f8fafc;
+}
+.filtre-count { font-size: 13px; color: #64748b; margin-left: auto; }
+
+/* ── Loading / Empty ─────────────────────────────────────────────── */
+.loading-screen { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 60px; color: #64748b; }
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.empty-state { text-align: center; padding: 60px; color: #94a3b8; }
+.empty-icon {
+  font-size: 48px !important; width: 48px !important; height: 48px !important;
+  color: #cbd5e1; display: block; margin: 0 auto 12px;
+}
+
+/* ── Liste pannes ────────────────────────────────────────────────── */
+.pannes-list { display: flex; flex-direction: column; gap: 10px; }
+
+.panne-card {
+  display: flex; align-items: center; gap: 16px;
+  background: white; border-radius: 10px; padding: 16px 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06); cursor: pointer; transition: box-shadow 0.2s;
+  border-left: 4px solid #dc2626;
+}
+.panne-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.10); }
+.card-cloturee { border-left-color: #10b981; opacity: 0.85; }
+
+.panne-icon-block {
+  width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.panne-icon-block.statut-immobilise { background: #fee2e2; color: #991b1b; }
+.panne-icon-block.statut-autorise   { background: #fef3c7; color: #92400e; }
+.panne-icon-block.statut-disponible { background: #dcfce7; color: #166534; }
+
+.panne-info { flex: 1; min-width: 0; }
+.panne-titre { display: flex; align-items: center; gap: 8px; }
+.panne-immat { font-weight: 700; font-size: 15px; color: #1e293b; }
+.panne-type  { font-size: 11px; color: #94a3b8; text-transform: uppercase; }
+.panne-desc  { font-size: 13px; color: #64748b; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panne-meta  {
+  display: flex; align-items: center; gap: 4px; font-size: 12px; color: #94a3b8; margin-top: 4px;
+}
+.panne-jours { color: #b91c1c; font-weight: 600; }
+.panne-rep-count { color: #64748b; }
+
+.panne-statuts { flex-shrink: 0; }
+.chevron { color: #cbd5e1; flex-shrink: 0; }
+
+/* ── Badges statut ───────────────────────────────────────────────── */
+.statut-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 12px; border-radius: 16px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+  white-space: nowrap;
+}
+.statut-immobilise { background: #fee2e2; color: #991b1b; }
+.statut-autorise   { background: #fef3c7; color: #92400e; }
+.statut-disponible { background: #dcfce7; color: #166534; }
+.statut-cloturee   { background: #dcfce7; color: #166534; }
+
+.statut-badge-lg {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700;
+}
+
+/* ── Icon helpers ────────────────────────────────────────────────── */
+.icon-xs { font-size: 16px !important; width: 16px !important; height: 16px !important; vertical-align: middle; }
+
+/* ── Modal ───────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(2px);
+}
+.modal-overlay-top { z-index: 1100; }
+.modal { background: white; border-radius: 16px; width: 540px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+.modal-lg { width: 700px; }
+.modal-sm { width: 460px; }
+
+.modal-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 20px 24px 16px; border-bottom: 1px solid #f1f5f9;
+  position: sticky; top: 0; background: white; z-index: 1;
+}
+.modal-header-left { display: flex; align-items: center; gap: 10px; }
+.modal-icon { color: #dc2626; }
+.modal-header h2 { margin: 0; font-size: 18px; font-weight: 700; color: #1e293b; }
+.modal-subtitle  { font-size: 13px; color: #64748b; }
+.modal-body { padding: 20px 24px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid #f1f5f9; }
+
+/* ── Détail panne ────────────────────────────────────────────────── */
+.detail-description {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: #f8fafc; border-radius: 8px; padding: 12px 16px;
+  font-size: 13px; color: #475569; margin-bottom: 20px;
+}
+
+.detail-section { margin-bottom: 24px; }
+.detail-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.detail-section-title { font-size: 14px; font-weight: 700; color: #374151; margin: 0 0 12px; }
+
+.statut-actuel-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.statut-actions { display: flex; gap: 8px; }
+.btn-statut-switch {
+  background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px;
+  padding: 6px 12px; font-size: 12px; font-weight: 600; color: #475569; cursor: pointer;
+}
+.btn-statut-switch:hover { background: #e2e8f0; }
+
+.btn-add-sm {
+  display: flex; align-items: center; gap: 4px;
+  background: #f1f5f9; border: none; border-radius: 6px;
+  padding: 6px 12px; font-size: 12px; font-weight: 600; color: #475569; cursor: pointer;
+}
+.btn-add-sm:hover { background: #e2e8f0; }
+
+.reparations-empty, .remplacement-empty { font-size: 13px; color: #94a3b8; padding: 12px 0; }
+
+.reparation-row {
+  background: #f8fafc; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px;
+}
+.reparation-main { display: flex; align-items: center; gap: 8px; }
+.reparation-atelier { font-weight: 600; font-size: 13px; color: #1e293b; }
+.atelier-type-badge {
+  font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 8px; background: #fef3c7; color: #92400e;
+}
+.atelier-type-badge.badge-interne { background: #dbeafe; color: #1e40af; }
+.reparation-date { font-size: 12px; color: #94a3b8; margin-left: auto; }
+.reparation-detail { font-size: 12px; color: #64748b; margin-top: 6px; }
+.reparation-meta { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 11px; color: #94a3b8; }
+.reparation-cloture-badge {
+  display: inline-flex; align-items: center; gap: 3px; color: #166534; font-weight: 600;
+}
+.btn-cloturer-sm {
+  margin-left: auto; background: #dcfce7; border: none; border-radius: 6px;
+  padding: 4px 10px; font-size: 11px; font-weight: 700; color: #166534; cursor: pointer;
+}
+.btn-cloturer-sm:hover { background: #bbf7d0; }
+
+.remplacement-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: #f8fafc; border-radius: 8px; padding: 12px 16px;
+}
+.remplacement-tracteur { font-weight: 600; font-size: 13px; color: #1e293b; }
+.remplacement-dates { font-size: 12px; color: #64748b; }
+.remplacement-commentaire { font-size: 12px; color: #94a3b8; }
+
+/* ── Formulaire ──────────────────────────────────────────────────── */
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;
+}
+.form-control {
+  width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
+  font-size: 14px; background: #f8fafc; box-sizing: border-box; outline: none; transition: border-color 0.2s;
+}
+.form-control:focus { border-color: #dc2626; background: white; box-shadow: 0 0 0 3px rgba(220,38,38,0.08); }
+textarea.form-control { resize: vertical; }
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #374151; cursor: pointer; }
+
+.info-note {
+  display: flex; align-items: center; gap: 8px; background: #f0f9ff; border: 1px solid #bae6fd;
+  border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #0369a1; margin-bottom: 16px;
+}
+
+/* ── Toggle type véhicule ────────────────────────────────────────── */
+.type-toggle { display: flex; gap: 8px; }
+.type-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; background: white;
+  font-size: 11px; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.2s;
+}
+.type-btn.active { border-color: #dc2626; background: #fef2f2; color: #dc2626; }
+
+/* ── Toggle statut ───────────────────────────────────────────────── */
+.statut-toggle { display: flex; gap: 8px; }
+.statut-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; background: white;
+  font-size: 13px; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.2s;
+}
+.statut-btn-immobilise.active { border-color: #dc2626; background: #fef2f2; color: #dc2626; }
+.statut-btn-autorise.active   { border-color: #f59e0b; background: #fffbeb; color: #92400e; }
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .pannes-page { padding: 16px; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .modal, .modal-lg, .modal-sm { width: calc(100vw - 32px); }
+  .form-row-2 { grid-template-columns: 1fr; }
+  .type-toggle { flex-direction: column; }
+}

@@ -94,6 +94,11 @@ export class SidebarComponent {
         icon: 'access_time',
         route: '/pointage-mensuel',
         depts: ['ADMIN','RH']
+      },
+      { label: 'Pannes',
+        icon: 'build',
+        route: '/pannes',
+        depts: ['MAINTENANCE', 'ADMIN']
       }
     ];
 

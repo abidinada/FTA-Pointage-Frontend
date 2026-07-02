@@ -9,14 +9,16 @@
         <p class="page-subtitle">Vue calendrier</p>
       </div>
     </div>
-    <button class="btn-generer" *ngIf="canEdit()" (click)="generer()" [disabled]="generating()">
-      <mat-icon [class.spin]="generating()">{{ generating() ? 'sync' : 'playlist_add_check' }}</mat-icon>
-      {{ generating() ? 'Génération...' : (estMoisEnCours() ? 'Générer le pointage' : 'Générer le mois') }}
-    </button>
-    <button class="btn-export" *ngIf="canEdit()" (click)="exporterExcel()" [disabled]="exportingExcel()">
-      <mat-icon [class.spin]="exportingExcel()">{{ exportingExcel() ? 'sync' : 'download' }}</mat-icon>
-      {{ exportingExcel() ? 'Export...' : 'Exporter Excel' }}
-    </button>
+    <div class="header-actions">
+      <button class="btn-generer" *ngIf="canEdit()" (click)="generer()" [disabled]="generating()">
+        <mat-icon [class.spin]="generating()">{{ generating() ? 'sync' : 'playlist_add_check' }}</mat-icon>
+        {{ generating() ? 'Génération...' : (estMoisEnCours() ? 'Générer jusqu\'à hier' : 'Générer le mois') }}
+      </button>
+      <button class="btn-export" *ngIf="canEdit()" (click)="exporterExcel()" [disabled]="exportingExcel()">
+        <mat-icon [class.spin]="exportingExcel()">{{ exportingExcel() ? 'sync' : 'download' }}</mat-icon>
+        {{ exportingExcel() ? 'Export...' : 'Exporter Excel' }}
+      </button>
+    </div>
   </div>
 
   <!-- ── NAVIGATION MOIS ─────────────────────────────────────────── -->
@@ -57,9 +59,9 @@
 
   <!-- ── LÉGENDE ──────────────────────────────────────────────────── -->
   <div class="legende" *ngIf="!loading() && pointages().length > 0">
-    <span class="legende-item"><span class="dot cell-nat"></span> National</span>
-    <span class="legende-item"><span class="dot cell-int"></span> International</span>
-    <span class="legende-item"><span class="dot cell-mixte"></span> Mixte (N/I)</span>
+    <span class="legende-item"><span class="dot cell-nat"></span> National (N)</span>
+    <span class="legende-item"><span class="dot cell-int"></span> International (I)</span>
+    <span class="legende-item"><span class="dot cell-mixte"></span> Mixte (N/I, I/N)</span>
     <span class="legende-item"><span class="dot cell-depot"></span> Dépôt</span>
     <span class="legende-item"><span class="dot cell-vide"></span> Repos / Absent</span>
   </div>
@@ -71,7 +73,9 @@
         <tr>
           <th class="th-chauffeur th-sticky">Chauffeur</th>
           <th class="th-embauche">Date d'embauche</th>
-          <th class="th-jour" *ngFor="let jour of joursDuMois()" [class.th-weekend]="isWeekend(jour)">
+          <th class="th-jour"
+              *ngFor="let jour of joursDuMois()"
+              [class.th-weekend]="isWeekend(jour)">
             <div class="th-jour-content">
               <span class="th-jour-num">{{ jour }}</span>
               <span class="th-jour-label">{{ getJourLabel(jour) }}</span>
@@ -99,7 +103,8 @@
               [class.td-future]="isJourFutur(jour)"
               [class.td-clickable]="canEdit() && p.statutPointage !== 'VALIDE_RH' && !isJourFutur(jour)"
               (click)="ouvrirCorrection(p, jour)">
-            <div class="cellule" [class]="getCelluleClass(getJournee(p, jour)?.codeAffichage)"
+            <div class="cellule"
+                 [class]="getCelluleClass(getJournee(p, jour)?.codeAffichage)"
                  *ngIf="!isJourFutur(jour)">
               <span class="cellule-code">{{ getJournee(p, jour)?.codeAffichage || '0' }}</span>
             </div>
@@ -141,44 +146,28 @@
     <div class="modal-body">
       <div class="alert alert-error" *ngIf="error()"><mat-icon>error</mat-icon>{{ error() }}</div>
 
+      <!-- Info chauffeur + date -->
       <div class="corr-info" *ngIf="corrChauffeur() && corrJournee()">
         <mat-icon class="icon-xs">person</mat-icon>
         {{ corrChauffeur()!.nomChauffeur }} {{ corrChauffeur()!.prenomChauffeur }}
         <span class="corr-date">· {{ corrJournee()!.dateJournee | date:'EEEE dd MMMM yyyy' }}</span>
       </div>
 
+      <!-- Sélection du code mission (remplace les radio valeur) -->
       <div class="form-group">
-        <label class="form-label">Valeur de la journée *</label>
-        <div class="valeur-radio-group">
-          <label class="valeur-radio" [class.selected]="corrValeur === '0.00'">
-            <input type="radio" [(ngModel)]="corrValeur" value="0.00">
-            <span>0 — Absent / Repos</span>
-          </label>
-          <label class="valeur-radio" [class.selected]="corrValeur === '0.50'">
-            <input type="radio" [(ngModel)]="corrValeur" value="0.50">
-            <span>0.5 — Demi-journée</span>
-          </label>
-          <label class="valeur-radio" [class.selected]="corrValeur === '1.00'">
-            <input type="radio" [(ngModel)]="corrValeur" value="1.00">
-            <span>1 — Journée complète</span>
-          </label>
+        <label class="form-label">Code mission *</label>
+        <div class="code-grid">
+          <button *ngFor="let c of codesDisponibles"
+                  class="code-btn"
+                  [class.active]="corrCode === c.code"
+                  [class]="'code-btn code-btn-' + c.type + (corrCode === c.code ? ' active' : '')"
+                  (click)="corrCode = c.code">
+            <span class="code-label">{{ c.code }}</span>
+            <span class="code-desc">{{ c.label }}</span>
+          </button>
         </div>
       </div>
 
-      <div class="form-group" *ngIf="corrValeur !== '0.00'">
-        <label class="form-label">Code (optionnel)</label>
-        <select class="form-control" [(ngModel)]="corrCode">
-          <option value="N">N — National</option>
-          <option value="I">I — International</option>
-          <option value="N/0">N/0 — National matin</option>
-          <option value="0/N">0/N — National après-midi</option>
-          <option value="I/0">I/0 — International matin</option>
-          <option value="0/I">0/I — International après-midi</option>
-          <option value="N/I">N/I — Mixte (matin NAT)</option>
-          <option value="I/N">I/N — Mixte (matin INT)</option>
-          <option value="DEPOT">DEPOT</option>
-        </select>
-      </div>
     </div>
 
     <div class="modal-footer">

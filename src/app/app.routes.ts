@@ -85,7 +85,14 @@ export const routes: Routes = [
         loadComponent: () =>
         import('./features/pointage-mensuel/pointage-mensuel.component')
         .then(m => m.PointageMensuelComponent),
-      }
+      },
+      {
+        path: 'pannes',
+        loadComponent: () =>
+        import('./features/pannes/pannes.component')
+        .then(m => m.PannesComponent),
+        canActivate: [authGuard]
+      },
     ],
   },
 

@@ -3,7 +3,9 @@
   <!-- ── HEADER ──────────────────────────────────────────────────── -->
   <div class="page-header">
     <div class="header-left">
-      <mat-icon class="header-icon">event_busy</mat-icon>
+      <div class="page-icon-box">
+        <mat-icon class="header-icon">event_busy</mat-icon>
+      </div>
       <div>
         <h1 class="page-title">Absences</h1>
         <p class="page-subtitle">Gestion des absences chauffeurs</p>
@@ -16,21 +18,33 @@
 
   <!-- ── STATS ────────────────────────────────────────────────────── -->
   <div class="stats-row">
-    <div class="stat-card stat-encours">
-      <div class="stat-number">{{ nbEnCours }}</div>
-      <div class="stat-label">En cours aujourd'hui</div>
+    <div class="stat-card">
+      <div class="stat-icon"><mat-icon>today</mat-icon></div>
+      <div class="stat-info">
+        <div class="stat-number">{{ nbEnCours }}</div>
+        <div class="stat-label">En cours aujourd'hui</div>
+      </div>
     </div>
-    <div class="stat-card stat-avenir">
-      <div class="stat-number">{{ nbAVenir }}</div>
-      <div class="stat-label">À venir</div>
+    <div class="stat-card">
+      <div class="stat-icon"><mat-icon>event_upcoming</mat-icon></div>
+      <div class="stat-info">
+        <div class="stat-number">{{ nbAVenir }}</div>
+        <div class="stat-label">À venir</div>
+      </div>
     </div>
-    <div class="stat-card stat-total">
-      <div class="stat-number">{{ absences().length }}</div>
-      <div class="stat-label">Total enregistrées</div>
+    <div class="stat-card">
+      <div class="stat-icon"><mat-icon>summarize</mat-icon></div>
+      <div class="stat-info">
+        <div class="stat-number">{{ absences().length }}</div>
+        <div class="stat-label">Total enregistrées</div>
+      </div>
     </div>
-    <div class="stat-card stat-termine">
-      <div class="stat-number">{{ nbTerminees }}</div>
-      <div class="stat-label">Terminées</div>
+    <div class="stat-card">
+      <div class="stat-icon"><mat-icon>check_circle</mat-icon></div>
+      <div class="stat-info">
+        <div class="stat-number">{{ nbTerminees }}</div>
+        <div class="stat-label">Terminées</div>
+      </div>
     </div>
   </div>
 
@@ -41,6 +55,152 @@
     </div>
     <div class="alert alert-error" *ngIf="error() && !showModal()">
       <mat-icon>error</mat-icon> {{ error() }}
+    </div>
+  </div>
+
+  <!-- ── INSIGHTS : absents du jour + répartition par type ──────────── -->
+  <div class="insights-grid" *ngIf="!loading()">
+
+    <!-- Absents aujourd'hui -->
+    <div class="card-dark-absences">
+      <div class="dark-card-header">
+        <span class="dark-card-title">
+          <mat-icon>person_off</mat-icon> Absents aujourd'hui
+        </span>
+        <span class="dark-card-count">{{ absentsAujourdhui().length }}</span>
+      </div>
+
+      <div class="absents-list" *ngIf="absentsAujourdhui().length > 0">
+        <div class="absent-item" *ngFor="let a of absentsAujourdhui()">
+          <span class="absent-avatar">{{ getInitiales(a.nomChauffeur, a.prenomChauffeur) }}</span>
+          <div class="absent-info">
+            <span class="absent-name">{{ a.nomChauffeur }} {{ a.prenomChauffeur }}</span>
+            <span class="absent-meta">{{ getTypeLabel(a.libelleTypeAbsence) }} · jusqu'au {{ a.dateFin | date:'dd/MM' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="absents-empty" *ngIf="absentsAujourdhui().length === 0">
+        <mat-icon>check_circle</mat-icon>
+        Aucune absence en cours aujourd'hui
+      </div>
+    </div>
+
+    <!-- Répartition par type -->
+    <div class="type-donut-card">
+      <div class="donut-header">
+        <mat-icon>donut_large</mat-icon> Répartition par type
+      </div>
+
+      <div class="donut-body">
+  <div class="donut-chart-wrap">
+    <svg viewBox="0 0 220 220" class="donut-svg">
+      <defs>
+        <filter id="donutShadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000000" flood-opacity="0.18"/>
+        </filter>
+      </defs>
+      <ng-container *ngIf="donutSegments().mode === 'empty'">
+        <circle cx="110" cy="110" r="75" fill="#E5E7EB" filter="url(#donutShadow)" />
+      </ng-container>
+      <ng-container *ngIf="donutSegments().mode === 'single'">
+        <circle cx="110" cy="110" r="75" [attr.fill]="donutSegments().singleColor" filter="url(#donutShadow)" />
+      </ng-container>
+      <ng-container *ngIf="donutSegments().mode === 'multi'">
+        <path *ngFor="let seg of donutSegments().segments"
+              [attr.d]="seg.path" [attr.fill]="seg.color"
+              stroke="#FFFFFF" stroke-width="2" filter="url(#donutShadow)" />
+      </ng-container>
+    </svg>
+  </div>
+
+  <div class="donut-side">
+    <div class="donut-summary" *ngIf="dominantType()">
+      <span class="donut-center-pct">{{ dominantPercent() }}%</span>
+      <span class="donut-center-label">{{ dominantType()?.label }}</span>
+    </div>
+
+    <div class="donut-legend">
+      <div class="legend-item" *ngFor="let t of typeBreakdown()">
+        <span class="legend-dot" [style.background]="t.color"></span>
+        {{ t.label }} <strong>{{ t.count }}</strong>
+      </div>
+    </div>
+  </div>
+</div>
+    </div>
+
+  </div>
+
+  <!-- ── TAUX DE PRÉSENCE MENSUEL ────────────────────────────────────── -->
+  <div class="presence-card presence-loading" *ngIf="presenceLoading()">
+    <mat-icon class="spin">sync</mat-icon> Chargement du taux de présence...
+  </div>
+
+  <div class="presence-card" *ngIf="!presenceLoading()">
+    <div class="presence-header">
+      <div>
+        <div class="presence-title">Taux de présence mensuel</div>
+        <div class="presence-range">{{ presenceRangeLabel() }}</div>
+      </div>
+      <div class="presence-legend">
+        <span class="legend-pt"><span class="legend-dot-line dot-present"></span> Présent</span>
+        <span class="legend-pt"><span class="legend-dot-line dot-absent"></span> Absent</span>
+      </div>
+    </div>
+
+    <div class="presence-chart-wrap">
+      <svg [attr.viewBox]="'0 0 ' + viewBoxW + ' ' + viewBoxH" class="presence-svg"
+           (mousemove)="onChartMove($event)" (mouseleave)="onChartLeave()">
+        <defs>
+          <linearGradient id="presentFade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#FF3131" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="#FF3131" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+
+        <!-- grille horizontale -->
+        <line *ngFor="let g of [0,25,50,75,100]"
+              x1="30" [attr.x2]="viewBoxW - 20"
+              [attr.y1]="20 + (100-g)/100*190" [attr.y2]="20 + (100-g)/100*190"
+              stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+        <path [attr.d]="presentAreaPath()" fill="url(#presentFade)" />
+        <path [attr.d]="presentLinePath()" fill="none" stroke="#FF3131" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path [attr.d]="absentLinePath()" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+
+        <!-- points par mois : plein si donnée réelle, pointillé creux si mois non généré -->
+        <circle *ngFor="let p of presenceChartPoints()"
+                [attr.cx]="p.xPresent" [attr.cy]="p.yPresent"
+                [attr.r]="p.hasData ? 3 : 4"
+                [attr.fill]="p.hasData ? '#FF3131' : 'transparent'"
+                [attr.stroke]="p.hasData ? 'none' : 'rgba(255,255,255,0.25)'"
+                [attr.stroke-width]="p.hasData ? 0 : 1.5"
+                [attr.stroke-dasharray]="p.hasData ? 'none' : '2,2'"/>
+
+        <!-- ligne verticale + point au survol -->
+        <ng-container *ngIf="hoveredPoint() as hp">
+          <line [attr.x1]="hp.xPresent" [attr.x2]="hp.xPresent" y1="20" [attr.y2]="20+190"
+                stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+          <circle *ngIf="hp.hasData" [attr.cx]="hp.xPresent" [attr.cy]="hp.yPresent" r="5" fill="#FF3131" stroke="#141214" stroke-width="2"/>
+        </ng-container>
+
+        <!-- labels mois -->
+        <text *ngFor="let p of presenceChartPoints()" [attr.x]="p.xPresent" [attr.y]="viewBoxH - 8"
+              text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.4)">{{ p.label }}</text>
+      </svg>
+
+      <div class="presence-tooltip"
+           *ngIf="hoveredPoint() as hp"
+           [style.left.%]="tooltipLeftPct()"
+           [style.top.%]="tooltipTopPct()">
+        <div class="tooltip-month">{{ hp.label.toUpperCase() }}</div>
+        <ng-container *ngIf="hp.hasData">
+          <div class="tooltip-row"><span class="tooltip-dot dot-present"></span>Présent : <strong>{{ hp.presentPct }}%</strong></div>
+          <div class="tooltip-row"><span class="tooltip-dot dot-absent"></span>Absent : <strong>{{ hp.absentPct }}%</strong></div>
+        </ng-container>
+        <div class="tooltip-row tooltip-nodata" *ngIf="!hp.hasData">Pointage non généré ce mois</div>
+      </div>
     </div>
   </div>
 
@@ -173,81 +333,94 @@
 
     <div class="modal-header">
       <div class="modal-header-left">
-        <mat-icon class="modal-icon">event_busy</mat-icon>
+        <div class="modal-icon-box">
+          <mat-icon class="modal-icon">event_busy</mat-icon>
+        </div>
         <h2>{{ enEdition() ? "Modifier l'absence" : 'Nouvelle absence' }}</h2>
       </div>
       <button class="btn-close" (click)="fermerModal()"><mat-icon>close</mat-icon></button>
     </div>
 
     <div class="modal-body">
-      <div class="alert alert-error" *ngIf="error()">
-        <mat-icon>error</mat-icon> {{ error() }}
-      </div>
+  <div class="alert alert-error" *ngIf="error()">
+    <mat-icon>error</mat-icon> {{ error() }}
+  </div>
 
-      <!-- Chauffeur -->
+  <!-- FIX : rappel contextuel quand le modal a été ouvert depuis le lien
+       "Déclarer une absence" du Bloc AUTRE (rapport-detail) -->
+  <div class="alert" style="background:#EFF6FF; color:#1E40AF; border-color:#BFDBFE;" *ngIf="depuisBlocAutre()">
+    <mat-icon>info</mat-icon>
+    Chauffeur pré-sélectionné depuis le bloc AUTRE du rapport journalier
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-title">Informations chauffeur</div>
+
+    <div class="form-group">
+      <label class="form-label">
+        <mat-icon class="icon-xs">person</mat-icon> Chauffeur *
+      </label>
+      <select class="form-control"
+              [(ngModel)]="form.idChauffeur"
+              [disabled]="!!enEdition()">
+        <option [ngValue]="null">— Sélectionner un chauffeur —</option>
+        <option *ngFor="let c of chauffeurs()" [ngValue]="c.idChauffeur">
+          {{ c.nom }} {{ c.prenom }}
+          ({{ c.typeChauffeur === 'INTERNATIONAL' ? 'INT' : 'NAT' }})
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group no-margin">
+      <label class="form-label">
+        <mat-icon class="icon-xs">category</mat-icon> Type d'absence *
+      </label>
+      <select class="form-control" [(ngModel)]="form.idTypeAbsence">
+        <option [ngValue]="null">— Sélectionner un type —</option>
+        <option *ngFor="let t of typesAbsence()" [ngValue]="t.idTypeAbsence">
+          {{ getTypeLabel(t.libelle) }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-title">Période</div>
+
+    <div class="form-row-2">
       <div class="form-group">
         <label class="form-label">
-          <mat-icon class="icon-xs">person</mat-icon> Chauffeur *
+          <mat-icon class="icon-xs">event</mat-icon> Date de début *
         </label>
-        <select class="form-control"
-                [(ngModel)]="form.idChauffeur"
-                [disabled]="!!enEdition()">
-          <option [ngValue]="null">— Sélectionner un chauffeur —</option>
-          <option *ngFor="let c of chauffeurs()" [ngValue]="c.idChauffeur">
-            {{ c.nom }} {{ c.prenom }}
-            ({{ c.typeChauffeur === 'INTERNATIONAL' ? 'INT' : 'NAT' }})
-          </option>
-        </select>
+        <input type="date" class="form-control" [(ngModel)]="form.dateDebut">
       </div>
-
-      <!-- Type -->
       <div class="form-group">
         <label class="form-label">
-          <mat-icon class="icon-xs">category</mat-icon> Type d'absence *
+          <mat-icon class="icon-xs">event</mat-icon> Date de fin *
         </label>
-        <select class="form-control" [(ngModel)]="form.idTypeAbsence">
-          <option [ngValue]="null">— Sélectionner un type —</option>
-          <option *ngFor="let t of typesAbsence()" [ngValue]="t.idTypeAbsence">
-            {{ getTypeLabel(t.libelle) }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Dates -->
-      <div class="form-row-2">
-        <div class="form-group">
-          <label class="form-label">
-            <mat-icon class="icon-xs">event</mat-icon> Date de début *
-          </label>
-          <input type="date" class="form-control" [(ngModel)]="form.dateDebut">
-        </div>
-        <div class="form-group">
-          <label class="form-label">
-            <mat-icon class="icon-xs">event</mat-icon> Date de fin *
-          </label>
-          <input type="date" class="form-control"
-                 [(ngModel)]="form.dateFin"
-                 [min]="form.dateDebut">
-        </div>
-      </div>
-
-      <!-- Durée calculée -->
-      <div class="duree-info"
-           *ngIf="form.dateDebut && form.dateFin && form.dateFin >= form.dateDebut">
-        <mat-icon class="icon-xs">schedule</mat-icon>
-        Durée : <strong>{{ getNbJoursForm() }} jour(s)</strong>
-      </div>
-
-      <!-- Commentaire -->
-      <div class="form-group">
-        <label class="form-label">
-          <mat-icon class="icon-xs">chat_bubble_outline</mat-icon> Commentaire (optionnel)
-        </label>
-        <textarea class="form-control" rows="3"
-                  [(ngModel)]="form.commentaire"
-                  placeholder="Précisions supplémentaires..."></textarea>
+        <input type="date" class="form-control"
+               [(ngModel)]="form.dateFin"
+               [min]="form.dateDebut">
       </div>
     </div>
+
+    <div class="duree-info no-margin"
+         *ngIf="form.dateDebut && form.dateFin && form.dateFin >= form.dateDebut">
+      <mat-icon class="icon-xs">schedule</mat-icon>
+      Durée : <strong>{{ getNbJoursForm() }} jour(s)</strong>
+    </div>
+  </div>
+
+  <div class="form-section no-border">
+    <div class="form-section-title">Commentaire</div>
+
+    <div class="form-group no-margin">
+      <textarea class="form-control" rows="3"
+                [(ngModel)]="form.commentaire"
+                placeholder="Précisions supplémentaires..."></textarea>
+    </div>
+  </div>
+</div>
 
     <div class="modal-footer">
       <button class="btn-secondary" (click)="fermerModal()">Annuler</button>

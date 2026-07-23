@@ -1,21 +1,25 @@
 .footer {
-  background: #111217;
-  padding: 32px 0;
+  background: #171111;
+  padding: 8px 0;
+  height: 110px;
 }
 
 .footer-inner {
   max-width: 1200px;
+  height: 100%;
   margin: 0 auto;
   padding: 0 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
+
 }
 
 .footer-inner img {
-  height: 43px;
+  height: 110px;
   filter: brightness(0) invert(1);
+  
 }
 
 .footer-inner span {

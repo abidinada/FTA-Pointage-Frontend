@@ -2,7 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { MatIconModule } from '@angular/material/icon';
 import { RapportDetailService, SousRapportResponse, AffectationAutreResponse } from './rapport-detail.service';
@@ -11,7 +11,7 @@ import { SumValeurPipe } from '../../pipes/sum-valeur.pipe';
 @Component({
   selector: 'app-rapport-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, SumValeurPipe],
+  imports: [CommonModule, FormsModule, MatIconModule, SumValeurPipe, RouterLink],
   templateUrl: './rapport-detail.component.html',
   styleUrl: './rapport-detail.component.css',
   providers: [RapportDetailService]
@@ -98,6 +98,13 @@ export class RapportDetailComponent implements OnInit {
 
         // Sprint 3 : charger bloc AUTRE si RH ou tous les départements
         this.rapportSvc.loadAffectationsAutre(this.idRapport);
+
+        // FIX : charger les absences actives à la date du rapport, pour
+        // exclure ces chauffeurs de la liste "non affectés" du Bloc AUTRE
+        // (RG-AUTRE05 — évite double saisie avec le module Absences).
+        if (data.dateRapport) {
+          this.rapportSvc.loadAbsencesActives(data.dateRapport);
+        }
 
         this.loading.set(false);
       },
@@ -616,6 +623,37 @@ export class RapportDetailComponent implements OnInit {
       REPOS: 'autre-repos'
     };
     return m[s] || '';
+  }
+
+  // FIX : redirige vers la page Absences avec le chauffeur et la date du
+  // rapport pré-remplis, pour que RH n'ait pas à ressaisir manuellement.
+  // Voir absences.component.ts → ouvrirDepuisQueryParamsSiPresent().
+  declarerAbsence(idChauffeur: number) {
+    const date = this.rapport()?.dateRapport;
+    this.router.navigate(['/absences'], { queryParams: { idChauffeur, date } });
+  }
+
+  // FIX : affichage en lecture seule des chauffeurs déjà en absence ce
+  // jour (tous types — congé, maladie, suspension, formation, autre),
+  // pour que RH ait une vue complète des chauffeurs "non affectés" sans
+  // devoir aller chercher sur la page Absences. Mêmes libellés que
+  // AbsencesComponent, pour rester cohérent visuellement entre les pages.
+  getTypeAbsenceLabel(libelle: string): string {
+    const m: Record<string, string> = {
+      CONGE_ANNUEL:  'Congé annuel',   CONGE_MALADIE: 'Congé maladie',
+      SUSPENSION:    'Suspension',     FORMATION:     'Formation',
+      AUTRE:         'Autre'
+    };
+    return m[libelle] || libelle;
+  }
+
+  getTypeAbsenceColor(libelle: string): string {
+    const m: Record<string, string> = {
+      CONGE_ANNUEL:  '#0ca30c', CONGE_MALADIE: '#fab219',
+      SUSPENSION:    '#d82929', FORMATION:     '#135ddc',
+      AUTRE:         '#6B7280'
+    };
+    return m[libelle] || '#64748b';
   }
 
   // ── Helpers ───────────────────────────────────────────────────────

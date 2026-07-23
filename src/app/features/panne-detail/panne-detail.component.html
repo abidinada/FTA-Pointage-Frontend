@@ -1,0 +1,248 @@
+<div class="detail-page" *ngIf="!loading() && panne() as p">
+
+  <!-- ── HEADER ──────────────────────────────────────────────────── -->
+  <div class="detail-header">
+    <button class="btn-back" (click)="retour()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+
+    <div class="detail-header-icon">
+      <mat-icon>{{ getTypeVehiculeIcon(p.typeVehicule) }}</mat-icon>
+    </div>
+
+    <div class="detail-header-text">
+      <h1>{{ p.immatriculation }}</h1>
+      <p>{{ getTypeVehiculeLabel(p.typeVehicule) }} · Panne depuis le {{ p.dateDebut | date:'dd/MM/yyyy' }} ({{ getNbJoursOuvert(p) }} j)</p>
+    </div>
+
+    <span *ngIf="!p.cloturee" [class]="'statut-badge-lg ' + getStatutClass(p.statutVehiculeActuel)">
+      {{ getStatutLabel(p.statutVehiculeActuel) }}
+    </span>
+    <span *ngIf="p.cloturee" class="statut-badge-lg statut-cloturee">
+      <mat-icon class="icon-xs">check_circle</mat-icon> Clôturée
+    </span>
+  </div>
+
+  <!-- ── ALERTES ──────────────────────────────────────────────────── -->
+  <div class="alert alert-success" *ngIf="success()"><mat-icon>check_circle</mat-icon>{{ success() }}</div>
+  <div class="alert alert-error" *ngIf="error() && !showReparationModal() && !showRemplacementModal()">
+    <mat-icon>error</mat-icon>{{ error() }}
+  </div>
+
+  <!-- ── ACTIONS RAPIDES ──────────────────────────────────────────── -->
+  <div class="quick-actions" *ngIf="canEdit() && !p.cloturee">
+    <button class="btn-quick btn-quick-reparer" (click)="openReparationModal()">
+      <mat-icon>build</mat-icon>
+      <div>
+        <span class="btn-quick-title">Réparer</span>
+        <span class="btn-quick-sub">Ajouter une réparation</span>
+      </div>
+    </button>
+
+    <button class="btn-quick btn-quick-remplacer" *ngIf="p.typeVehicule === 'TRACTEUR' && !p.remplacement"
+            (click)="openRemplacementModal()">
+      <mat-icon>swap_horiz</mat-icon>
+      <div>
+        <span class="btn-quick-title">Remplacer</span>
+        <span class="btn-quick-sub">Affecter un tracteur de remplacement</span>
+      </div>
+    </button>
+  </div>
+
+  <!-- ── DESCRIPTION ──────────────────────────────────────────────── -->
+  <div class="detail-description" *ngIf="p.description">
+  <div class="detail-description-icon">
+    <mat-icon class="icon-xs">description</mat-icon>
+  </div>
+  <span class="detail-description-text">{{ p.description }}</span>
+</div>
+
+  <!-- ── STATUT VÉHICULE ──────────────────────────────────────────── -->
+  <div class="detail-section" *ngIf="canEdit() && !p.cloturee">
+    <h3 class="detail-section-title">Changer le statut</h3>
+    <div class="statut-actions">
+  <button class="btn-statut-switch" *ngIf="p.statutVehiculeActuel !== 'EN_PANNE_AUTORISE'"
+          (click)="changerStatutVehicule('EN_PANNE_AUTORISE')">
+    <mat-icon class="icon-xs">warning</mat-icon> Autoriser à rouler
+  </button>
+  <button class="btn-statut-switch" *ngIf="p.statutVehiculeActuel !== 'EN_PANNE_IMMOBILISE'"
+          (click)="changerStatutVehicule('EN_PANNE_IMMOBILISE')">
+    <mat-icon class="icon-xs">block</mat-icon> Immobiliser
+  </button>
+</div>
+  </div>
+
+  <!-- ── RÉPARATIONS ──────────────────────────────────────────────── -->
+  <div class="detail-section">
+    <div class="detail-section-header">
+      <h3 class="detail-section-title">Réparations ({{ p.reparations.length }})</h3>
+      <button class="btn-add-sm" *ngIf="canEdit() && !p.cloturee" (click)="openReparationModal()">
+        <mat-icon>add</mat-icon> Ajouter
+      </button>
+    </div>
+
+    <div class="reparations-empty" *ngIf="p.reparations.length === 0">Aucune réparation enregistrée</div>
+
+    <div class="reparation-row" *ngFor="let r of p.reparations">
+      <div class="reparation-main">
+        <span class="reparation-atelier">{{ r.nomAtelier }}</span>
+        <span class="atelier-type-badge" [class.badge-interne]="r.typeAtelier === 'INTERNE'">
+          {{ r.typeAtelier }}
+        </span>
+        <span class="reparation-date">{{ r.dateReparation | date:'dd/MM/yyyy' }}</span>
+      </div>
+      <div class="reparation-detail" *ngIf="r.descriptionTravaux">{{ r.descriptionTravaux }}</div>
+      <div class="reparation-meta">
+        <span *ngIf="r.technicien"><mat-icon class="icon-xs">engineering</mat-icon> {{ r.technicien }}</span>
+        <span class="reparation-cloture-badge" *ngIf="r.cloture">
+          <mat-icon class="icon-xs">check_circle</mat-icon> Clôturante
+        </span>
+        <button class="btn-cloturer-sm" *ngIf="canEdit() && !r.cloture && !p.cloturee"
+                (click)="cloturerReparation(r.idReparation)">
+          Clôturer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── REMPLACEMENT (tracteur uniquement) ──────────────────────── -->
+  <div class="detail-section" *ngIf="p.typeVehicule === 'TRACTEUR'">
+    <div class="detail-section-header">
+      <h3 class="detail-section-title">Remplacement</h3>
+      <button class="btn-add-sm" *ngIf="canEdit() && !p.remplacement && !p.cloturee" (click)="openRemplacementModal()">
+        <mat-icon>add</mat-icon> Enregistrer
+      </button>
+    </div>
+
+    <div class="remplacement-empty" *ngIf="!p.remplacement">Aucun remplacement enregistré</div>
+
+    <div class="remplacement-row" *ngIf="p.remplacement as r">
+      <mat-icon class="icon-xs">local_shipping</mat-icon>
+      <span class="remplacement-tracteur">{{ r.immatriculationTracteur }}</span>
+      <span class="remplacement-dates">
+        {{ r.dateDebut | date:'dd/MM/yyyy' }}
+        <span *ngIf="r.dateFin"> → {{ r.dateFin | date:'dd/MM/yyyy' }}</span>
+      </span>
+      <span class="remplacement-commentaire" *ngIf="r.commentaire">{{ r.commentaire }}</span>
+      <button class="btn-icon-delete" *ngIf="canEdit()" (click)="supprimerRemplacement(r.idRemplacement)">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<div class="loading-screen" *ngIf="loading()"><mat-icon class="spin">sync</mat-icon> Chargement...</div>
+
+<!-- ══════════════════ MODAL RÉPARATION ══════════════════════════ -->
+<div class="modal-overlay" *ngIf="showReparationModal()" (click)="showReparationModal.set(false)">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <mat-icon class="modal-icon">build</mat-icon>
+        <h2>Ajouter une réparation</h2>
+      </div>
+      <button class="btn-close" (click)="showReparationModal.set(false)"><mat-icon>close</mat-icon></button>
+    </div>
+
+    <div class="modal-body">
+      <div class="alert alert-error" *ngIf="error()"><mat-icon>error</mat-icon>{{ error() }}</div>
+
+      <div class="form-group">
+        <label class="form-label">Atelier *</label>
+        <select class="form-control" [(ngModel)]="reparationForm.idAtelier">
+          <option [ngValue]="null">— Sélectionner —</option>
+          <option *ngFor="let a of ateliers()" [ngValue]="a.idAtelier">
+            {{ a.nom }} ({{ a.type }})
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Date *</label>
+        <input type="date" class="form-control" [(ngModel)]="reparationForm.dateReparation">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Technicien</label>
+        <input type="text" class="form-control" [(ngModel)]="reparationForm.technicien" placeholder="Nom du technicien">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Description des travaux</label>
+        <textarea class="form-control" rows="3" [(ngModel)]="reparationForm.descriptionTravaux"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="reparationForm.cloture">
+          <span>Cette réparation clôture la panne (véhicule redevient disponible)</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showReparationModal.set(false)">Annuler</button>
+      <button class="btn-primary" (click)="ajouterReparation()">
+        <mat-icon>save</mat-icon> Ajouter
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════ MODAL REMPLACEMENT ══════════════════════════ -->
+<div class="modal-overlay" *ngIf="showRemplacementModal()" (click)="showRemplacementModal.set(false)">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <mat-icon class="modal-icon">swap_horiz</mat-icon>
+        <h2>Enregistrer un remplacement</h2>
+      </div>
+      <button class="btn-close" (click)="showRemplacementModal.set(false)"><mat-icon>close</mat-icon></button>
+    </div>
+
+    <div class="modal-body">
+      <div class="alert alert-error" *ngIf="error()"><mat-icon>error</mat-icon>{{ error() }}</div>
+      <div class="info-note">
+        <mat-icon class="icon-xs">info</mat-icon> Seuls les tracteurs FTA disponibles peuvent remplacer.
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tracteur de remplacement *</label>
+        <select class="form-control" [(ngModel)]="remplacementForm.idTracteur">
+          <option [ngValue]="null">— Sélectionner —</option>
+          <option *ngFor="let t of tracteursDisponibles()" [ngValue]="getVehiculeId(t)">
+            {{ t.immatriculation }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="form-label">Date début *</label>
+          <input type="date" class="form-control" [(ngModel)]="remplacementForm.dateDebut">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date fin</label>
+          <input type="date" class="form-control" [(ngModel)]="remplacementForm.dateFin">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Commentaire</label>
+        <textarea class="form-control" rows="2" [(ngModel)]="remplacementForm.commentaire"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="showRemplacementModal.set(false)">Annuler</button>
+      <button class="btn-primary" (click)="enregistrerRemplacement()">
+        <mat-icon>save</mat-icon> Enregistrer
+      </button>
+    </div>
+
+  </div>
+</div>

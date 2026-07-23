@@ -2,12 +2,14 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-chauffeurs',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule,MatIconModule],
   templateUrl: './chauffeurs.component.html',
   styleUrl: './chauffeurs.component.css',
 })
@@ -24,6 +26,11 @@ export class ChauffeursComponent implements OnInit {
   filtreActif: boolean | null = null;
   filtreType: string = '';
   recherche: string = '';
+
+  // FIX : filtre "alerte visa" activé depuis le dashboard via
+  // /chauffeurs?visaAlerte=true — même fenêtre que le dashboard (40j,
+  // visa expiré, ou visa manquant pour un chauffeur INTERNATIONAL).
+  filtreVisaAlerte = signal(false);
 
   // Modal
   showModal = signal(false);
@@ -44,10 +51,17 @@ export class ChauffeursComponent implements OnInit {
 
   constructor(
     private http: HttpClient,
-    public authService: AuthService
+    public authService: AuthService,
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit() {
+    // FIX : lit le query param posé par le dashboard pour activer le filtre
+    // automatiquement à l'arrivée sur la page.
+    this.route.queryParams.subscribe(params => {
+      this.filtreVisaAlerte.set(params['visaAlerte'] === 'true');
+    });
     this.loadChauffeurs();
   }
 
@@ -65,6 +79,17 @@ export class ChauffeursComponent implements OnInit {
     });
   }
 
+  // FIX : même logique de fenêtre que dashboard.component.ts (40j,
+  // international uniquement, visa manquant ou déjà expiré inclus).
+  private estEnAlerteVisa(c: any): boolean {
+    if (c.typeChauffeur !== 'INTERNATIONAL') return false;
+    if (!c.dateExpirationVisa) return true;
+    const today = new Date();
+    const in40days = new Date();
+    in40days.setDate(today.getDate() + 40);
+    return new Date(c.dateExpirationVisa) <= in40days;
+  }
+
   get chauffeursFiltres() {
     return this.chauffeurs().filter(c => {
       const matchActif = this.filtreActif === null || c.actif === this.filtreActif;
@@ -72,8 +97,16 @@ export class ChauffeursComponent implements OnInit {
       const matchRecherche = !this.recherche ||
         c.nom.toLowerCase().includes(this.recherche.toLowerCase()) ||
         c.prenom.toLowerCase().includes(this.recherche.toLowerCase());
-      return matchActif && matchType && matchRecherche;
+      const matchVisaAlerte = !this.filtreVisaAlerte() || this.estEnAlerteVisa(c);
+      return matchActif && matchType && matchRecherche && matchVisaAlerte;
     });
+  }
+
+  // FIX : permet de retirer le filtre "alerte visa" sans recharger la page,
+  // en nettoyant aussi le query param dans l'URL.
+  retirerFiltreVisaAlerte() {
+    this.filtreVisaAlerte.set(false);
+    this.router.navigate([], { queryParams: {} });
   }
 
   isAdmin() {

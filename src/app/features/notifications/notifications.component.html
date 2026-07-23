@@ -1,23 +1,32 @@
-
 <div class="notif-page">
 
-  <!-- HEADER -->
+  <!-- HEADER BLANC -->
   <div class="notif-header">
     <div class="header-left">
-      <img src="/logo_rouge_final.png" alt="FTA" class="fta-logo" />
-      <div>
-        <h1 class="page-title">Notifications</h1>
-        <span class="page-sub" *ngIf="nonLues > 0">
-          {{ nonLues }} non lue{{ nonLues > 1 ? 's' : '' }}
-        </span>
-        <span class="page-sub no-unread" *ngIf="nonLues === 0">Tout est lu</span>
-      </div>
+      <h1 class="page-title">Notifications</h1>
+      <p class="page-sub-line">
+        Centre de notifications
+        <span class="dot-sep">·</span>
+        <span class="unread-count" *ngIf="nonLues > 0">{{ nonLues }} notification{{ nonLues > 1 ? 's' : '' }} non lue{{ nonLues > 1 ? 's' : '' }}</span>
+        <span class="unread-count all-read" *ngIf="nonLues === 0">Tout est lu</span>
+      </p>
     </div>
     <button class="btn-tout-lire"
             *ngIf="nonLues > 0"
             (click)="marquerToutesLues()">
       <mat-icon>done_all</mat-icon>
-      Tout marquer lu
+      Tout marquer comme lu
+    </button>
+  </div>
+
+  <!-- ONGLETS -->
+  <div class="notif-tabs" *ngIf="!loading() && notifications().length > 0">
+    <button *ngFor="let t of tabs()"
+            class="tab-btn"
+            [class.active]="activeTab() === t.key"
+            (click)="selectTab(t.key)">
+      {{ t.label }}
+      <span class="tab-count">{{ t.count }}</span>
     </button>
   </div>
 
@@ -38,30 +47,43 @@
     <p>Aucune notification</p>
   </div>
 
-  <!-- LISTE -->
-  <div class="notif-list" *ngIf="!loading() && notifications().length > 0">
-    <div class="notif-item"
-         *ngFor="let n of notifsFiltrees"
-         [class.unread]="!n.lue"
-         (click)="marquerLue(n)">
-
-      <!-- Icône -->
-      <div class="notif-icon-wrap" [class]="getIconColor(n.typeNotification)">
-        <mat-icon>{{ getIcon(n.typeNotification) }}</mat-icon>
+  <!-- LISTE GROUPÉE PAR DATE -->
+  <div class="notif-groups" *ngIf="!loading() && notifications().length > 0">
+    <div class="notif-group" *ngFor="let g of groupesParDate()">
+      <div class="group-label">
+        <span>{{ g.label }}</span>
+        <div class="group-line"></div>
       </div>
 
-      <!-- Contenu -->
-      <div class="notif-content">
-        <div class="notif-top">
-          <span class="notif-type">{{ getTypeLabel(n.typeNotification) }}</span>
-          <span class="notif-date">{{ n.dateCreation | date:'dd/MM HH:mm' }}</span>
+      <div class="notif-list">
+        <div class="notif-item"
+             *ngFor="let n of g.items"
+             [class.unread]="!n.lue"
+             (click)="marquerLue(n)">
+
+          <div class="notif-icon-wrap" [class]="getIconColor(n.typeNotification)">
+            <mat-icon>{{ getIcon(n.typeNotification) }}</mat-icon>
+          </div>
+
+          <div class="notif-content">
+            <div class="notif-top">
+              <span class="notif-title-row">
+                <span class="notif-title">{{ getTypeLabel(n.typeNotification) }}</span>
+                <span class="notif-type-badge" [class]="getIconColor(n.typeNotification)">
+                  {{ getTypeLabel(n.typeNotification) }}
+                </span>
+                <span class="unread-dot" *ngIf="!n.lue"></span>
+              </span>
+              <span class="notif-date">{{ n.dateCreation | date:'HH:mm' }}</span>
+            </div>
+            <p class="notif-message">{{ n.message }}</p>
+          </div>
+
+          <button class="dismiss-btn" (click)="dismiss(n, $event)">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
-        <p class="notif-message">{{ n.message }}</p>
       </div>
-
-      <!-- Indicateur non lu -->
-      <div class="unread-dot" *ngIf="!n.lue"></div>
-
     </div>
   </div>
 

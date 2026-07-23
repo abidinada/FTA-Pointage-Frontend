@@ -14,30 +14,131 @@
     </button>
   </div>
 
-  <!-- ── STATS ────────────────────────────────────────────────────── -->
-  <div class="stats-row">
-    <div class="stat-card stat-ouvertes">
-      <div class="stat-number">{{ nbOuvertes }}</div>
-      <div class="stat-label">Pannes ouvertes</div>
+  <!-- ── KPI (style dashboard : noir + rouge) ──────────────────────── -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon"><mat-icon>report_problem</mat-icon></div>
+      <div class="kpi-info">
+        <div class="kpi-value">{{ nbOuvertes }}</div>
+        <div class="kpi-label">Pannes ouvertes</div>
+      </div>
     </div>
-    <div class="stat-card stat-immobilise">
-      <div class="stat-number">{{ nbImmobilisees }}</div>
-      <div class="stat-label">Immobilisés</div>
+    <div class="kpi-card">
+      <div class="kpi-icon"><mat-icon>block</mat-icon></div>
+      <div class="kpi-info">
+        <div class="kpi-value">{{ nbImmobilisees }}</div>
+        <div class="kpi-label">Immobilisés</div>
+      </div>
     </div>
-    <div class="stat-card stat-autorise">
-      <div class="stat-number">{{ nbAutorisees }}</div>
-      <div class="stat-label">Autorisés à rouler</div>
+    <div class="kpi-card">
+      <div class="kpi-icon"><mat-icon>warning</mat-icon></div>
+      <div class="kpi-info">
+        <div class="kpi-value">{{ nbAutorisees }}</div>
+        <div class="kpi-label">Autorisés à rouler</div>
+      </div>
     </div>
-    <div class="stat-card stat-cloturees">
-      <div class="stat-number">{{ nbCloturees }}</div>
-      <div class="stat-label">Clôturées</div>
+    <div class="kpi-card">
+      <div class="kpi-icon"><mat-icon>check_circle</mat-icon></div>
+      <div class="kpi-info">
+        <div class="kpi-value">{{ nbCloturees }}</div>
+        <div class="kpi-label">Clôturées</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── GRAPHIQUES ──────────────────────────────────────────────────── -->
+  <div class="charts-row" *ngIf="!loading()">
+
+    <!-- Pannes & résolutions mensuelles -->
+    <div class="chart-card-monthly">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-card-title">Pannes & résolutions mensuelles</div>
+          <div class="chart-card-range">
+            {{ monthlyChart()[0].label }} — {{ monthlyChart()[monthlyChart().length - 1].label }} {{ currentYear }}
+          </div>
+        </div>
+        <div class="chart-legend">
+          <span class="legend-pt"><span class="legend-dot dot-signalees"></span> Signalées</span>
+          <span class="legend-pt"><span class="legend-dot dot-resolues"></span> Résolues</span>
+        </div>
+      </div>
+
+      <div class="bars-wrap">
+        <div class="bar-month" *ngFor="let m of monthlyChart()">
+          <div class="bar-pair">
+            <div class="bar bar-signalees" [style.height.%]="(m.signalees / monthlyChartMax()) * 100" [title]="m.signalees + ' signalées'"></div>
+            <div class="bar bar-resolues" [style.height.%]="(m.resolues / monthlyChartMax()) * 100" [title]="m.resolues + ' résolues'"></div>
+          </div>
+          <span class="bar-month-label">{{ m.label }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne droite : catégorie + taux résolution -->
+    <div class="charts-side">
+
+      <div class="side-card">
+        <div class="side-card-title"><mat-icon>donut_large</mat-icon> Par catégorie</div>
+
+        <div class="category-donut-body" *ngIf="categoryBreakdown().length > 0; else noCategory">
+          <div class="donut-chart-wrap">
+            <svg viewBox="0 0 220 220" class="donut-svg">
+              <defs>
+                <filter id="pannesDonutShadow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000000" flood-opacity="0.18"/>
+                </filter>
+              </defs>
+              <ng-container *ngIf="categoryDonutSegments().mode === 'empty'">
+                <circle cx="110" cy="110" r="75" fill="#E5E7EB" filter="url(#pannesDonutShadow)" />
+              </ng-container>
+              <ng-container *ngIf="categoryDonutSegments().mode === 'single'">
+                <circle cx="110" cy="110" r="75" [attr.fill]="categoryDonutSegments().singleColor" filter="url(#pannesDonutShadow)" />
+              </ng-container>
+              <ng-container *ngIf="categoryDonutSegments().mode === 'multi'">
+                <path *ngFor="let seg of categoryDonutSegments().segments"
+                      [attr.d]="seg.path" [attr.fill]="seg.color"
+                      stroke="#FFFFFF" stroke-width="2" filter="url(#pannesDonutShadow)" />
+              </ng-container>
+            </svg>
+          </div>
+
+          <div class="category-legend">
+            <div class="legend-item" *ngFor="let c of categoryBreakdown()">
+              <span class="legend-dot" [style.background]="c.color"></span>
+              {{ c.label }} <strong>{{ c.count }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noCategory>
+          <div class="side-empty">Aucune panne enregistrée</div>
+        </ng-template>
+      </div>
+
+      <div class="side-card">
+        <div class="side-card-title"><mat-icon>trending_up</mat-icon> Taux résolution</div>
+        <div class="taux-sub">Cette semaine</div>
+
+        <div class="taux-value">{{ tauxResolutionSemaine() }}%</div>
+
+        <div class="spark-wrap">
+          <div class="spark-bar-col" *ngFor="let d of weeklyResolutionSpark()">
+            <div class="spark-bar" [class.spark-empty]="d.count === 0"
+                 [style.height.%]="d.count > 0 ? (d.count / weeklySparkMax()) * 100 : 6"
+                 [title]="d.count + ' résolue(s)'"></div>
+            <span class="spark-label">{{ d.label }}</span>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
   <!-- ── ALERTES ──────────────────────────────────────────────────── -->
   <div class="alerts-zone">
     <div class="alert alert-success" *ngIf="success()"><mat-icon>check_circle</mat-icon>{{ success() }}</div>
-    <div class="alert alert-error" *ngIf="error() && !showPanneModal() && !showDetailModal()">
+    <div class="alert alert-error" *ngIf="error() && !showPanneModal()">
       <mat-icon>error</mat-icon>{{ error() }}
     </div>
   </div>
@@ -72,43 +173,62 @@
     <p>Aucune panne trouvée</p>
   </div>
 
-  <!-- ── LISTE ────────────────────────────────────────────────────── -->
-  <div class="pannes-list" *ngIf="!loading() && pannesFiltrees().length > 0">
-    <div class="panne-card" *ngFor="let p of pannesFiltrees()"
-         [class.card-cloturee]="p.cloturee"
-         (click)="ouvrirDetail(p)">
-
-      <div class="panne-icon-block" [class]="getStatutClass(p.statutVehiculeActuel)">
-        <mat-icon>{{ getTypeVehiculeIcon(p.typeVehicule) }}</mat-icon>
-      </div>
-
-      <div class="panne-info">
-        <div class="panne-titre">
-          <span class="panne-immat">{{ p.immatriculation }}</span>
-          <span class="panne-type">{{ getTypeVehiculeLabel(p.typeVehicule) }}</span>
-        </div>
-        <div class="panne-desc" *ngIf="p.description">{{ p.description }}</div>
-        <div class="panne-meta">
-          <mat-icon class="icon-xs">event</mat-icon>
-          Depuis le {{ p.dateDebut | date:'dd/MM/yyyy' }}
-          <span class="panne-jours">({{ getNbJoursOuvert(p) }} j)</span>
-          <span class="panne-rep-count" *ngIf="p.reparations.length > 0">
-            · {{ p.reparations.length }} réparation(s)
-          </span>
-        </div>
-      </div>
-
-      <div class="panne-statuts">
-        <span [class]="'statut-badge ' + getStatutClass(p.statutVehiculeActuel)" *ngIf="!p.cloturee">
-          {{ getStatutLabel(p.statutVehiculeActuel) }}
-        </span>
-        <span class="statut-badge statut-cloturee" *ngIf="p.cloturee">
-          <mat-icon class="icon-xs">check_circle</mat-icon> Clôturée
-        </span>
-      </div>
-
-      <mat-icon class="chevron">chevron_right</mat-icon>
-    </div>
+  <!-- ── TABLEAU ────────────────────────────────────────────────────── -->
+  <div class="table-wrapper" *ngIf="!loading() && pannesFiltrees().length > 0">
+    <table class="panne-table">
+      <thead>
+        <tr>
+          <th>Véhicule</th>
+          <th>Description</th>
+          <th>Depuis</th>
+          <th>Réparations</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of pannesFiltrees()" [class.row-cloturee]="p.cloturee">
+          <td (click)="ouvrirDetail(p)">
+            <div class="cell-vehicule">
+              <div class="panne-icon-block" [class]="getStatutClass(p.statutVehiculeActuel)">
+                <mat-icon>{{ getTypeVehiculeIcon(p.typeVehicule) }}</mat-icon>
+              </div>
+              <div>
+                <div class="cell-immat">{{ p.immatriculation }}</div>
+                <div class="cell-type">{{ getTypeVehiculeLabel(p.typeVehicule) }}</div>
+              </div>
+            </div>
+          </td>
+          <td (click)="ouvrirDetail(p)">
+            <span class="cell-desc" *ngIf="p.description">{{ p.description }}</span>
+            <span class="cell-desc-empty" *ngIf="!p.description">—</span>
+          </td>
+          <td (click)="ouvrirDetail(p)">
+            <div class="cell-date">
+              {{ p.dateDebut | date:'dd/MM/yyyy' }}
+              <span class="panne-jours">({{ getNbJoursOuvert(p) }} j)</span>
+            </div>
+          </td>
+          <td (click)="ouvrirDetail(p)">
+            <span class="cell-rep" *ngIf="p.reparations.length > 0">{{ p.reparations.length }}</span>
+            <span class="cell-desc-empty" *ngIf="p.reparations.length === 0">—</span>
+          </td>
+          <td (click)="ouvrirDetail(p)">
+            <span [class]="'statut-badge ' + getStatutClass(p.statutVehiculeActuel)" *ngIf="!p.cloturee">
+              {{ getStatutLabel(p.statutVehiculeActuel) }}
+            </span>
+            <span class="statut-badge statut-cloturee" *ngIf="p.cloturee">
+              <mat-icon class="icon-xs">check_circle</mat-icon> Clôturée
+            </span>
+          </td>
+          <td class="cell-actions">
+            <button class="btn-ouvrir" (click)="ouvrirDetail(p)">
+              <mat-icon>open_in_new</mat-icon> Ouvrir
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
 </div>
@@ -129,25 +249,22 @@
       <div class="alert alert-error" *ngIf="error()"><mat-icon>error</mat-icon>{{ error() }}</div>
 
       <div class="form-group">
-        <label class="form-label">Type de véhicule *</label>
-        <div class="type-toggle">
-          <button class="type-btn" [class.active]="panneForm.typeVehicule === 'TRACTEUR'"
-                  (click)="panneForm.typeVehicule = 'TRACTEUR'; panneForm.idVehicule = null">
-            <mat-icon>local_shipping</mat-icon> Tracteur
-          </button>
-          <button class="type-btn" [class.active]="panneForm.typeVehicule === 'REMORQUE'"
-                  (click)="panneForm.typeVehicule = 'REMORQUE'; panneForm.idVehicule = null">
-            <mat-icon>rv_hookup</mat-icon> Remorque
-          </button>
-          <button class="type-btn" [class.active]="panneForm.typeVehicule === 'VOITURE_SERVICE'"
-                  (click)="panneForm.typeVehicule = 'VOITURE_SERVICE'; panneForm.idVehicule = null">
-            <mat-icon>directions_car</mat-icon> Voiture
-          </button>
-        </div>
+        <label class="form-label">
+          <mat-icon class="icon-xs">local_shipping</mat-icon> Type de véhicule *
+        </label>
+        <select class="form-control"
+                [ngModel]="panneForm.typeVehicule"
+                (ngModelChange)="panneForm.typeVehicule = $event; panneForm.idVehicule = null">
+          <option value="TRACTEUR">Tracteur</option>
+          <option value="REMORQUE">Remorque</option>
+          <option value="VOITURE_SERVICE">Voiture de service</option>
+        </select>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Véhicule *</label>
+        <label class="form-label">
+          <mat-icon class="icon-xs">directions_car</mat-icon> Véhicule *
+        </label>
         <select class="form-control" [(ngModel)]="panneForm.idVehicule">
           <option [ngValue]="null">— Sélectionner —</option>
           <option *ngFor="let v of getVehiculesPourType(panneForm.typeVehicule)" [ngValue]="getVehiculeId(v)">
@@ -157,28 +274,26 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Statut du véhicule *</label>
-        <div class="statut-toggle">
-          <button class="statut-btn statut-btn-immobilise"
-                  [class.active]="panneForm.statutChoisi === 'EN_PANNE_IMMOBILISE'"
-                  (click)="panneForm.statutChoisi = 'EN_PANNE_IMMOBILISE'">
-            <mat-icon>block</mat-icon> Immobilisé
-          </button>
-          <button class="statut-btn statut-btn-autorise"
-                  [class.active]="panneForm.statutChoisi === 'EN_PANNE_AUTORISE'"
-                  (click)="panneForm.statutChoisi = 'EN_PANNE_AUTORISE'">
-            <mat-icon>warning</mat-icon> Peut rouler
-          </button>
-        </div>
+        <label class="form-label">
+          <mat-icon class="icon-xs">report_problem</mat-icon> Statut du véhicule *
+        </label>
+        <select class="form-control" [(ngModel)]="panneForm.statutChoisi">
+          <option value="EN_PANNE_IMMOBILISE">Immobilisé</option>
+          <option value="EN_PANNE_AUTORISE">Peut rouler</option>
+        </select>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Date de début *</label>
+        <label class="form-label">
+          <mat-icon class="icon-xs">event</mat-icon> Date de début *
+        </label>
         <input type="date" class="form-control" [(ngModel)]="panneForm.dateDebut">
       </div>
 
       <div class="form-group">
-        <label class="form-label">Description</label>
+        <label class="form-label">
+          <mat-icon class="icon-xs">description</mat-icon> Description
+        </label>
         <textarea class="form-control" rows="3" [(ngModel)]="panneForm.description"
                   placeholder="Description du problème..."></textarea>
       </div>
@@ -188,231 +303,6 @@
       <button class="btn-secondary" (click)="showPanneModal.set(false)">Annuler</button>
       <button class="btn-primary" (click)="creerPanne()" [disabled]="saving()">
         <mat-icon>{{ saving() ? 'sync' : 'save' }}</mat-icon> Signaler
-      </button>
-    </div>
-
-  </div>
-</div>
-
-<!-- ══════════════════ MODAL DÉTAIL PANNE ══════════════════════ -->
-<div class="modal-overlay" *ngIf="showDetailModal()" (click)="showDetailModal.set(false)">
-  <div class="modal modal-lg" (click)="$event.stopPropagation()">
-
-    <div class="modal-header" *ngIf="panneDetail() as p">
-      <div class="modal-header-left">
-        <mat-icon class="modal-icon">{{ getTypeVehiculeIcon(p.typeVehicule) }}</mat-icon>
-        <div>
-          <h2>{{ p.immatriculation }}</h2>
-          <span class="modal-subtitle">{{ getTypeVehiculeLabel(p.typeVehicule) }} · Panne depuis le {{ p.dateDebut | date:'dd/MM/yyyy' }}</span>
-        </div>
-      </div>
-      <button class="btn-close" (click)="showDetailModal.set(false)"><mat-icon>close</mat-icon></button>
-    </div>
-
-    <div class="modal-body" *ngIf="panneDetail() as p">
-      <div class="alert alert-error" *ngIf="error()"><mat-icon>error</mat-icon>{{ error() }}</div>
-
-      <div class="detail-description" *ngIf="p.description">
-        <mat-icon class="icon-xs">description</mat-icon> {{ p.description }}
-      </div>
-
-      <!-- Statut actuel + changement -->
-      <div class="detail-section">
-        <h3 class="detail-section-title">Statut véhicule</h3>
-        <div class="statut-actuel-row">
-          <span *ngIf="!p.cloturee" [class]="'statut-badge-lg ' + getStatutClass(p.statutVehiculeActuel)">
-            {{ getStatutLabel(p.statutVehiculeActuel) }}
-          </span>
-          <span *ngIf="p.cloturee" class="statut-badge-lg statut-cloturee">
-            <mat-icon class="icon-xs">check_circle</mat-icon> Disponible — Panne clôturée
-          </span>
-
-          <div class="statut-actions" *ngIf="canEdit() && !p.cloturee">
-            <button class="btn-statut-switch" *ngIf="p.statutVehiculeActuel !== 'EN_PANNE_AUTORISE'"
-                    (click)="changerStatutVehicule('EN_PANNE_AUTORISE')">
-              → Autoriser à rouler
-            </button>
-            <button class="btn-statut-switch" *ngIf="p.statutVehiculeActuel !== 'EN_PANNE_IMMOBILISE'"
-                    (click)="changerStatutVehicule('EN_PANNE_IMMOBILISE')">
-              → Immobiliser
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Réparations -->
-      <div class="detail-section">
-        <div class="detail-section-header">
-          <h3 class="detail-section-title">Réparations ({{ p.reparations.length }})</h3>
-          <button class="btn-add-sm" *ngIf="canEdit() && !p.cloturee" (click)="openReparationModal()">
-            <mat-icon>add</mat-icon> Ajouter
-          </button>
-        </div>
-
-        <div class="reparations-empty" *ngIf="p.reparations.length === 0">Aucune réparation enregistrée</div>
-
-        <div class="reparation-row" *ngFor="let r of p.reparations">
-          <div class="reparation-main">
-            <span class="reparation-atelier">{{ r.nomAtelier }}</span>
-            <span class="atelier-type-badge" [class.badge-interne]="r.typeAtelier === 'INTERNE'">
-              {{ r.typeAtelier }}
-            </span>
-            <span class="reparation-date">{{ r.dateReparation | date:'dd/MM/yyyy' }}</span>
-          </div>
-          <div class="reparation-detail" *ngIf="r.descriptionTravaux">{{ r.descriptionTravaux }}</div>
-          <div class="reparation-meta">
-            <span *ngIf="r.technicien"><mat-icon class="icon-xs">engineering</mat-icon> {{ r.technicien }}</span>
-            <span class="reparation-cloture-badge" *ngIf="r.cloture">
-              <mat-icon class="icon-xs">check_circle</mat-icon> Clôturante
-            </span>
-            <button class="btn-cloturer-sm" *ngIf="canEdit() && !r.cloture && !p.cloturee"
-                    (click)="cloturerReparation(r.idReparation)">
-              Clôturer
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Remplacement (tracteur uniquement) -->
-      <div class="detail-section" *ngIf="p.typeVehicule === 'TRACTEUR'">
-        <div class="detail-section-header">
-          <h3 class="detail-section-title">Remplacement</h3>
-          <button class="btn-add-sm" *ngIf="canEdit() && !p.remplacement && !p.cloturee" (click)="openRemplacementModal()">
-            <mat-icon>add</mat-icon> Enregistrer
-          </button>
-        </div>
-
-        <div class="remplacement-empty" *ngIf="!p.remplacement">Aucun remplacement enregistré</div>
-
-        <div class="remplacement-row" *ngIf="p.remplacement as r">
-          <mat-icon class="icon-xs">local_shipping</mat-icon>
-          <span class="remplacement-tracteur">{{ r.immatriculationTracteur }}</span>
-          <span class="remplacement-dates">
-            {{ r.dateDebut | date:'dd/MM/yyyy' }}
-            <span *ngIf="r.dateFin"> → {{ r.dateFin | date:'dd/MM/yyyy' }}</span>
-          </span>
-          <span class="remplacement-commentaire" *ngIf="r.commentaire">{{ r.commentaire }}</span>
-          <button class="btn-icon-delete" *ngIf="canEdit()" (click)="supprimerRemplacement(r.idRemplacement)">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="modal-footer">
-      <button class="btn-secondary" (click)="showDetailModal.set(false)">Fermer</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════ MODAL RÉPARATION ══════════════════════════ -->
-<div class="modal-overlay modal-overlay-top" *ngIf="showReparationModal()" (click)="showReparationModal.set(false)">
-  <div class="modal modal-sm" (click)="$event.stopPropagation()">
-
-    <div class="modal-header">
-      <div class="modal-header-left">
-        <mat-icon class="modal-icon">build</mat-icon>
-        <h2>Ajouter une réparation</h2>
-      </div>
-      <button class="btn-close" (click)="showReparationModal.set(false)"><mat-icon>close</mat-icon></button>
-    </div>
-
-    <div class="modal-body">
-      <div class="alert alert-error" *ngIf="error()"><mat-icon>error</mat-icon>{{ error() }}</div>
-
-      <div class="form-group">
-        <label class="form-label">Atelier *</label>
-        <select class="form-control" [(ngModel)]="reparationForm.idAtelier">
-          <option [ngValue]="null">— Sélectionner —</option>
-          <option *ngFor="let a of ateliers()" [ngValue]="a.idAtelier">
-            {{ a.nom }} ({{ a.type }})
-          </option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Date *</label>
-        <input type="date" class="form-control" [(ngModel)]="reparationForm.dateReparation">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Technicien</label>
-        <input type="text" class="form-control" [(ngModel)]="reparationForm.technicien" placeholder="Nom du technicien">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Description des travaux</label>
-        <textarea class="form-control" rows="3" [(ngModel)]="reparationForm.descriptionTravaux"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label class="checkbox-label">
-          <input type="checkbox" [(ngModel)]="reparationForm.cloture">
-          <span>Cette réparation clôture la panne (véhicule redevient disponible)</span>
-        </label>
-      </div>
-    </div>
-
-    <div class="modal-footer">
-      <button class="btn-secondary" (click)="showReparationModal.set(false)">Annuler</button>
-      <button class="btn-primary" (click)="ajouterReparation()">
-        <mat-icon>save</mat-icon> Ajouter
-      </button>
-    </div>
-
-  </div>
-</div>
-
-<!-- ══════════════════ MODAL REMPLACEMENT ══════════════════════════ -->
-<div class="modal-overlay modal-overlay-top" *ngIf="showRemplacementModal()" (click)="showRemplacementModal.set(false)">
-  <div class="modal modal-sm" (click)="$event.stopPropagation()">
-
-    <div class="modal-header">
-      <div class="modal-header-left">
-        <mat-icon class="modal-icon">swap_horiz</mat-icon>
-        <h2>Enregistrer un remplacement</h2>
-      </div>
-      <button class="btn-close" (click)="showRemplacementModal.set(false)"><mat-icon>close</mat-icon></button>
-    </div>
-
-    <div class="modal-body">
-      <div class="alert alert-error" *ngIf="error()"><mat-icon>error</mat-icon>{{ error() }}</div>
-      <div class="info-note">
-        <mat-icon class="icon-xs">info</mat-icon> Seuls les tracteurs FTA disponibles peuvent remplacer.
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Tracteur de remplacement *</label>
-        <select class="form-control" [(ngModel)]="remplacementForm.idTracteur">
-          <option [ngValue]="null">— Sélectionner —</option>
-          <option *ngFor="let t of tracteursDisponibles()" [ngValue]="getVehiculeId(t)">
-            {{ t.immatriculation }}
-          </option>
-        </select>
-      </div>
-
-      <div class="form-row-2">
-        <div class="form-group">
-          <label class="form-label">Date début *</label>
-          <input type="date" class="form-control" [(ngModel)]="remplacementForm.dateDebut">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Date fin</label>
-          <input type="date" class="form-control" [(ngModel)]="remplacementForm.dateFin">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Commentaire</label>
-        <textarea class="form-control" rows="2" [(ngModel)]="remplacementForm.commentaire"></textarea>
-      </div>
-    </div>
-
-    <div class="modal-footer">
-      <button class="btn-secondary" (click)="showRemplacementModal.set(false)">Annuler</button>
-      <button class="btn-primary" (click)="enregistrerRemplacement()">
-        <mat-icon>save</mat-icon> Enregistrer
       </button>
     </div>
 

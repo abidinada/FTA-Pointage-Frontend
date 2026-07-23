@@ -1,9 +1,54 @@
+<style>
+  /* FIX : style dédié pour le bouton "Déclarer une absence", distinct du
+     btn-outline générique utilisé ailleurs (ex: bouton Historique) —
+     ton bleu discret cohérent avec le bandeau info d'absences.component.html */
+  .btn-declarer-absence {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #EFF6FF;
+    border: 1.5px dashed #93C5FD;
+    border-radius: 8px;
+    color: #1E40AF;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .btn-declarer-absence:hover {
+    background: #DBEAFE;
+    border-color: #60A5FA;
+  }
+  .btn-declarer-absence mat-icon {
+    color: #1E40AF;
+  }
+
+  /* FIX : lien "voir tout" simple pour la section absences en lecture seule */
+  .voir-tout-lien {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #1E40AF;
+    font-weight: 600;
+    font-size: 13px;
+    text-decoration: none;
+    margin-left: auto;
+  }
+  .voir-tout-lien:hover {
+    text-decoration: underline;
+  }
+</style>
+
 <div class="page-wrapper" *ngIf="!loading(); else loadingTpl">
 
   <!-- TOP BAR -->
   <div class="top-bar">
     <div class="top-bar-left">
       <button class="btn-back" (click)="retournerListe()"><mat-icon>arrow_back</mat-icon></button>
+      <div class="top-bar-icon"><mat-icon>assignment</mat-icon></div>
       <div *ngIf="rapport()">
         <h1 class="rapport-title">Fiche du jour</h1>
         <span class="rapport-subtitle">{{ rapport().dateRapport | date:'dd/MM/yyyy' }} · {{ rapport().nomCreateur }}</span>
@@ -39,6 +84,18 @@
       <div class="step-dot"></div><span>Transmis RH</span>
     </div>
   </div>
+
+   <!-- LÉGENDE DES ÉTATS -->
+<div class="legende-etats" *ngIf="rapport()">
+  <span class="legende-item">
+    <span class="legende-dot legende-dot-immobilise"></span>
+    Rouge — En panne immobilisé (véhicule indisponible)
+  </span>
+  <span class="legende-item">
+    <span class="legende-dot legende-dot-autorise"></span>
+    Jaune — En panne autorisée (peut rouler)
+  </span>
+</div>
 
   <!-- ALERTES -->
   <div class="alerts-zone">
@@ -113,47 +170,49 @@
              [class.row-immobilise]="isImmobiliseTracteur(t)">
 
           <div class="vehicule-id-block">
-            <div class="vehicule-id">
-              <mat-icon class="v-icon">local_shipping</mat-icon>
-              <div class="v-details">
-                <span class="v-immat">{{ t.immatriculation }}</span>
-                <span class="v-marque">{{ t.marque }}</span>
-              </div>
-              <span class="tag-panne-auto" *ngIf="isPanneAutoriseTracteur(t)"><mat-icon class="icon-xs">warning</mat-icon></span>
-              <span class="tag-immobilise" *ngIf="isImmobiliseTracteur(t)"><mat-icon class="icon-xs">block</mat-icon></span>
-            </div>
-            <div class="remorque-line">
-              <mat-icon class="icon-xs remorque-icon">link</mat-icon>
-              <select class="sel-remorque" [disabled]="!canEdit()"
-                [ngModel]="remorqueParTracteur[t.idTracteur] ?? null"
-                (ngModelChange)="onRemorqueChange(t.idTracteur, $event)">
-                <option [ngValue]="null">sans remorque</option>
-                <option *ngFor="let r of svc.remorques()" [ngValue]="r.idRemorque">{{ r.immatriculation }}</option>
-              </select>
-            </div>
-            <!-- Rappel remorque déjà utilisée ailleurs (jaune) -->
-            <div class="remorque-rappel"
-                *ngIf="getRemorqueDejaUtilisee(remorqueParTracteur[t.idTracteur], t.idTracteur) as autreTracto">
-              <mat-icon class="icon-xs">info</mat-icon> Rappel : aussi sur {{ autreTracto }}
-            </div>
-            <!-- Rappel remorque en panne (rouge) -->
-            <div class="remorque-rappel remorque-rappel-panne"
-                *ngIf="getRemorqueStatut(remorqueParTracteur[t.idTracteur]) as statutRem">
-              <mat-icon class="icon-xs">warning</mat-icon>
-              Remorque {{ statutRem === 'EN_PANNE_IMMOBILISE' ? 'immobilisée' : 'en panne autorisée' }}
-            </div>
-          </div>
-
-          <!-- Rappel tracteur immobilisé (rouge) — les affectations restent accessibles -->
-          <div class="immobilise-msg" *ngIf="isImmobiliseTracteur(t)">
-            <mat-icon class="icon-xs">block</mat-icon> Tracteur EN PANNE IMMOBILISÉ
-          </div>
+    <div class="vehicule-id">
+    <mat-icon class="v-icon">local_shipping</mat-icon>
+    <div class="v-details">
+      <span class="v-immat">{{ t.immatriculation }}</span>
+      <span class="v-marque">{{ t.marque }}</span>
+    </div>
+  </div>
+  <div class="remorque-line">
+    <mat-icon class="icon-xs remorque-icon">link</mat-icon>
+    <select class="sel-remorque" [disabled]="!canEdit()"
+      [ngModel]="remorqueParTracteur[t.idTracteur] ?? null"
+      (ngModelChange)="onRemorqueChange(t.idTracteur, $event)">
+      <option [ngValue]="null">sans remorque</option>
+      <option *ngFor="let r of svc.remorques()" [ngValue]="r.idRemorque">{{ r.immatriculation }}</option>
+    </select>
+  </div>
+  <!-- Rappel remorque déjà utilisée ailleurs (jaune) -->
+  <div class="remorque-rappel"
+      *ngIf="getRemorqueDejaUtilisee(remorqueParTracteur[t.idTracteur], t.idTracteur) as autreTracto">
+    <mat-icon class="icon-xs">info</mat-icon> Rappel : aussi sur {{ autreTracto }}
+  </div>
+  <!-- Rappel remorque en panne (rouge) -->
+  <div class="remorque-rappel remorque-rappel-panne"
+      *ngIf="getRemorqueStatut(remorqueParTracteur[t.idTracteur]) as statutRem">
+    <mat-icon class="icon-xs">warning</mat-icon>
+    Remorque {{ statutRem === 'EN_PANNE_IMMOBILISE' ? 'immobilisée' : 'en panne autorisée' }}
+  </div>
+  <!-- Rappel tracteur immobilisé (rouge) -->
+  <div class="vehicule-rappel-panne" *ngIf="isImmobiliseTracteur(t)">
+    <mat-icon class="icon-xs">block</mat-icon> Tracteur immobilisé
+  </div>
+  <!-- Rappel tracteur en panne autorisée (jaune) -->
+  <div class="vehicule-rappel-attention" *ngIf="isPanneAutoriseTracteur(t)">
+    <mat-icon class="icon-xs">warning</mat-icon> Tracteur en panne (autorisé)
+  </div>
+</div>
 
           <div class="slots-inline">
 
             <!-- INTERNATIONAL -->
             <div class="slot-col slot-int-col">
-              <div class="slot-col-header"><mat-icon class="icon-xs">public</mat-icon><span>INT</span></div>
+              <!-- APRÈS -->
+              <div class="slot-col-header"><mat-icon class="icon-xs">flight</mat-icon><span>INT</span></div>
               <div class="slot-block" *ngFor="let num of [1,2]">
                 <div class="slot-line" [class.slot-saving]="isSlotSaving(tracteurKey(t.idTracteur, 'INTERNATIONAL', num))">
                   <span class="slot-num">{{ num }}</span>
@@ -183,7 +242,8 @@
 
             <!-- NATIONAL -->
             <div class="slot-col slot-nat-col">
-              <div class="slot-col-header"><mat-icon class="icon-xs">flag</mat-icon><span>NAT</span></div>
+              <!-- APRÈS -->
+              <div class="slot-col-header"><mat-icon class="icon-xs">route</mat-icon><span>NAT</span></div>
               <div class="slot-block" *ngFor="let num of [1,2]">
                 <div class="slot-line" [class.slot-saving]="isSlotSaving(tracteurKey(t.idTracteur, 'NATIONAL', num))">
                   <span class="slot-num">{{ num }}</span>
@@ -274,19 +334,21 @@
              [class.row-panne-autorise]="isPanneAutoriseVoiture(v)"
              [class.row-immobilise]="isImmobiliseVoiture(v)">
 
-          <div class="vehicule-id">
-            <mat-icon class="v-icon">directions_car</mat-icon>
-            <div class="v-details">
-              <span class="v-immat">{{ v.immatriculation }}</span>
-              <span class="v-marque">{{ v.marque?.libelle || v.marque }}</span>
-            </div>
-            <span class="tag-panne-auto" *ngIf="isPanneAutoriseVoiture(v)"><mat-icon class="icon-xs">warning</mat-icon></span>
-            <span class="tag-immobilise" *ngIf="isImmobiliseVoiture(v)"><mat-icon class="icon-xs">block</mat-icon></span>
-          </div>
-
-          <div class="immobilise-msg" *ngIf="isImmobiliseVoiture(v)">
-            <mat-icon class="icon-xs">block</mat-icon> Voiture immobilisée
-          </div>
+          <div class="vehicule-id-block">
+  <div class="vehicule-id">
+    <mat-icon class="v-icon">directions_car</mat-icon>
+    <div class="v-details">
+      <span class="v-immat">{{ v.immatriculation }}</span>
+      <span class="v-marque">{{ v.marque?.libelle || v.marque }}</span>
+    </div>
+  </div>
+  <div class="vehicule-rappel-panne" *ngIf="isImmobiliseVoiture(v)">
+    <mat-icon class="icon-xs">block</mat-icon> Voiture immobilisée
+  </div>
+  <div class="vehicule-rappel-attention" *ngIf="isPanneAutoriseVoiture(v)">
+    <mat-icon class="icon-xs">warning</mat-icon> Voiture en panne (autorisée)
+  </div>
+</div>
 
           <div class="slots-inline" *ngIf="!isImmobiliseVoiture(v)">
             <!-- JOUR -->
@@ -408,6 +470,53 @@
       </div>
     </div>
 
+    <!-- ══════════════════ CHAUFFEURS EN ABSENCE (lecture seule) ══════════════════ -->
+    <!-- FIX : visibilité complète pour RH — ces chauffeurs sont aussi
+         "non affectés" ce jour, mais leur statut est déjà géré via le
+         module Absences (tous types : congé, maladie, suspension,
+         formation, autre). Rien n'est modifiable ici — uniquement un
+         rappel + lien vers la page Absences pour agir si besoin. -->
+    <div class="fiche-section" *ngIf="svc.absencesActives().length > 0">
+      <div class="section-title-bar">
+        <mat-icon class="section-icon" style="color:#DC2626">event_busy</mat-icon>
+        <h2>CHAUFFEURS EN ABSENCE CE JOUR</h2>
+        <span class="section-note">Géré depuis la page Absences</span>
+      </div>
+
+      <div class="autre-list">
+        <div class="autre-row" *ngFor="let a of svc.absencesActives()">
+
+          <div class="autre-chauffeur">
+            <mat-icon class="icon-xs">person</mat-icon>
+            <span class="autre-nom">{{ a.nomChauffeur }} {{ a.prenomChauffeur }}</span>
+            <span class="autre-type">{{ a.typeChauffeur === 'INTERNATIONAL' ? 'INT' : 'NAT' }}</span>
+          </div>
+
+          <div class="autre-statut-bloc">
+            <span class="autre-badge"
+                  [style.background]="getTypeAbsenceColor(a.libelleTypeAbsence) + '1A'"
+                  [style.color]="getTypeAbsenceColor(a.libelleTypeAbsence)"
+                  [style.border]="'1px solid ' + getTypeAbsenceColor(a.libelleTypeAbsence)">
+              {{ getTypeAbsenceLabel(a.libelleTypeAbsence) }}
+            </span>
+          </div>
+
+          <div class="autre-rh">
+            <mat-icon class="icon-xs">event</mat-icon>
+            <span>{{ a.dateDebut | date:'dd/MM' }} → {{ a.dateFin | date:'dd/MM' }}</span>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="autre-resume">
+        <span>Total : {{ svc.absencesActives().length }} chauffeur(s) en absence</span>
+        <a routerLink="/absences" class="voir-tout-lien">
+          Gérer dans Absences <mat-icon class="icon-xs">arrow_forward</mat-icon>
+        </a>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -466,12 +575,29 @@
         </select>
       </div>
 
+      <!-- FIX : lien vers Absences — un chauffeur absent (quel que soit le
+           type : congé, maladie, suspension, formation, autre) ne doit
+           jamais être saisi ici, il ne se choisit même plus dans la liste
+           ci-dessus (déjà filtrée sur tous les types d'absence via
+           AbsenceRepository.existsByChauffeurAndDate), mais on offre un
+           raccourci direct au cas où RH cherche justement ce chauffeur et
+           ne le trouve pas dans le dropdown. -->
+      <div class="form-group" *ngIf="!autreEnEdition() && autreForm.idChauffeur">
+        <button type="button" class="btn-declarer-absence"
+                (click)="declarerAbsence(autreForm.idChauffeur)">
+          <mat-icon class="icon-xs">event_busy</mat-icon>
+          Ce chauffeur a une absence à déclarer (congé, maladie, suspension, formation...) ?
+        </button>
+      </div>
+
       <!-- Statut journée -->
       <div class="form-group">
         <label class="form-label">Statut *</label>
+        <!-- FIX : MALADIE retiré — géré exclusivement via la page Absences
+             (RG-AUTRE03 modifié). Le backend refuse aussi cette valeur en
+             défense en profondeur, mais on évite déjà de la proposer ici. -->
         <select class="form-control" [(ngModel)]="autreForm.statutJournee">
           <option value="DEPOT">Dépôt</option>
-          <option value="MALADIE">Maladie</option>
           <option value="REPOS">Repos</option>
         </select>
       </div>

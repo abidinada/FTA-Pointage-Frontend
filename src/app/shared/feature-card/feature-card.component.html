@@ -1,7 +1,9 @@
 <article class="fcard">
-  <div class="decoration">
-  <img [src]="image" alt=""/>
-  </div>
+  @if (image) {
+    <div class="decoration">
+      <img [src]="image" alt=""/>
+    </div>
+  }
   <div class="icon-tile">
     <mat-icon>{{ icon }}</mat-icon>
   </div>

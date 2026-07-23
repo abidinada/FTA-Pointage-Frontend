@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -32,6 +32,18 @@ export class RemorquesComponent implements OnInit {
   form = { immatriculation: '', idTypeRemorque: '', idStatutVehicule: '' };
   selectedId = signal<number | null>(null);
   nouveauStatutId = '';
+
+  // FIX : les statuts de panne (EN_PANNE_AUTORISE / EN_PANNE_IMMOBILISE) ne
+  // doivent jamais être choisis manuellement depuis cette page — ils sont
+  // exclusivement gérés par le module Pannes (RG-PA03/RG-PA04). Le backend
+  // les refuse désormais aussi (défense en profondeur), mais on évite déjà
+  // de les proposer côté UI pour ne pas laisser cliquer sur une option qui
+  // échouera systématiquement.
+  private readonly STATUTS_PANNE = ['EN_PANNE_AUTORISE', 'EN_PANNE_IMMOBILISE'];
+
+  statutsDisponibles = computed(() =>
+    this.statuts().filter(s => !this.STATUTS_PANNE.includes(s.libelle))
+  );
 
   constructor(
     private http: HttpClient,
@@ -88,6 +100,7 @@ export class RemorquesComponent implements OnInit {
   openChangerStatut(r: any) {
     this.selectedId.set(r.idRemorque);
     this.nouveauStatutId = '';
+    this.error.set('');
     this.showStatutModal.set(true);
   }
 
@@ -113,7 +126,7 @@ export class RemorquesComponent implements OnInit {
         this.loadRemorques();
         setTimeout(() => this.success.set(''), 3000);
       },
-      error: () => this.error.set('Erreur lors de la création')
+      error: (err) => this.error.set(this.parseErr(err))
     });
   }
 
@@ -133,7 +146,7 @@ export class RemorquesComponent implements OnInit {
         this.loadRemorques();
         setTimeout(() => this.success.set(''), 3000);
       },
-      error: () => this.error.set('Erreur lors de la mise à jour')
+      error: (err) => this.error.set(this.parseErr(err))
     });
   }
 
@@ -145,5 +158,9 @@ export class RemorquesComponent implements OnInit {
       case 'HORS_SERVICE': return 'hors-service';
       default: return '';
     }
+  }
+
+  private parseErr(err: any): string {
+    return err?.error?.message || err?.error || 'Une erreur est survenue';
   }
 }

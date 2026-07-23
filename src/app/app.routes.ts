@@ -93,6 +93,12 @@ export const routes: Routes = [
         .then(m => m.PannesComponent),
         canActivate: [authGuard]
       },
+      { path: 'pannes/:id',
+        loadComponent: () =>
+        import('./features/panne-detail/panne-detail.component')
+        .then(m => m.PannesDetailComponent),
+        canActivate: [authGuard]
+      },
     ],
   },
 

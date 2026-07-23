@@ -3,62 +3,66 @@
   <!-- HEADER -->
   <div class="page-header">
     <div class="header-content">
-      <img src="/logo_rouge_final.png" alt="Logo FTA" class="page-logo" />
+      <div class="page-icon">
+        <mat-icon>sell</mat-icon>
+      </div>
       <div class="header-text">
         <h1>Marques</h1>
         <p class="subtitle">Gestion des marques de véhicules</p>
       </div>
     </div>
     @if (isAdmin()) {
-      <button class="btn-primary" (click)="openAjouter()">+ Ajouter une marque</button>
+      <button class="btn-primary" (click)="openAjouter()">
+        <mat-icon>add</mat-icon>
+        Ajouter une marque
+      </button>
     }
   </div>
 
   <!-- MESSAGES -->
   @if (success()) {
-    <div class="alert success">✓ {{ success() }}</div>
+    <div class="alert success">
+      <mat-icon>check_circle</mat-icon>
+      {{ success() }}
+    </div>
   }
   @if (error() && !showModal()) {
-    <div class="alert error">⚠ {{ error() }}</div>
+    <div class="alert error">
+      <mat-icon>warning</mat-icon>
+      {{ error() }}
+    </div>
   }
 
-  <!-- LISTE -->
+  <!-- LISTE EN CARTES -->
   @if (loading()) {
     <div class="loading">Chargement...</div>
   } @else {
-    <div class="table-wrapper">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Libellé</th>
-            @if (isAdmin()) {
-              <th>Actions</th>
-            }
-          </tr>
-        </thead>
-        <tbody>
-          @for (m of marques(); track m.idMarque) {
-            <tr>
-              <td>{{ m.idMarque }}</td>
-              <td>
-                <span class="marque-badge">{{ m.libelle }}</span>
-              </td>
-              @if (isAdmin()) {
-                <td class="actions">
-                  <button class="btn-edit" (click)="openModifier(m)">Modifier</button>
-                  <button class="btn-delete" (click)="supprimer(m)">Supprimer</button>
-                </td>
-              }
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="3" class="empty">Aucune marque trouvée</td>
-            </tr>
-          }
-        </tbody>
-      </table>
+    <div class="marques-grid">
+  @for (m of marques(); track m.idMarque; let i = $index) {
+    <div class="marque-card"
+         [ngClass]="'accent-' + (i % 4)"
+         [style.transform]="'rotate(' + (i % 2 === 0 ? '-2.5deg' : '2.5deg') + ')'">
+      <div class="marque-pin"></div>
+
+      @if (isAdmin()) {
+        <div class="marque-actions">
+          <button class="btn-edit" (click)="openModifier(m)" title="Modifier">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button class="btn-delete" (click)="supprimer(m)" title="Supprimer">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      }
+
+      <div class="marque-number">{{ (i + 1) < 10 ? '0' + (i + 1) : (i + 1) }}</div>
+      <h3 class="marque-title">{{ m.libelle }}</h3>
+      <p class="marque-desc">Marque de véhicule enregistrée</p>
     </div>
+  } @empty {
+    <div class="empty">Aucune marque trouvée</div>
+  }
+</div>
   }
 
   <!-- MODAL AJOUTER / MODIFIER -->
@@ -68,11 +72,16 @@
 
         <div class="modal-header">
           <h2>{{ isEditing() ? 'Modifier la marque' : 'Ajouter une marque' }}</h2>
-          <button class="close-btn" (click)="closeModal()">✕</button>
+          <button class="close-btn" (click)="closeModal()">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
 
         @if (error()) {
-          <div class="alert error">⚠ {{ error() }}</div>
+          <div class="alert error">
+            <mat-icon>warning</mat-icon>
+            {{ error() }}
+          </div>
         }
 
         <div class="form-group">

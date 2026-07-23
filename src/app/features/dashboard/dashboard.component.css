@@ -5,7 +5,7 @@
   margin: 0 auto;
   padding: 40px 24px;
   font-family: 'Barlow', sans-serif;
-  background: #F8F8F8;
+  background: #f7f7f7
 }
 
 /* PAGE HEADER */
@@ -24,11 +24,23 @@
   flex: 1;
 }
 
-.page-logo {
-  height: 80px;
-  width: auto;
-  object-fit: contain;
+.page-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: hsl(0, 69%, 40%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 8px 18px -6px rgba(0, 0, 0, 0.35);
+}
+
+.page-icon mat-icon {
+  color: #FFFFFF;
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
 }
 
 .header-text {
@@ -52,8 +64,8 @@
 
 .date {
   font-size: 13px;
-  color: #9A8E88;
-  background: #F5F0EE;
+  color: #000000;
+  background: #f5eeee;
   padding: 8px 16px;
   border-radius: 8px;
   display: flex;
@@ -70,20 +82,49 @@
 }
 
 .stat-card {
-  background: #FFFFFF;
+  position: relative;
+  overflow: hidden;
+  background: #141214;
   border-radius: 12px;
   padding: 18px 20px;
   display: flex;
   align-items: center;
   gap: 14px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  border: 1px solid #F0EBE8;
+  border: none;
+  border-bottom: 3px solid #FF3131;
+  box-shadow: 0 14px 28px -10px rgba(0, 0, 0, 0.45),
+              0 4px 10px -4px rgba(0, 0, 0, 0.30);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: -34px;
+  right: -34px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: #FF3131;
+  opacity: 0.10;
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: -22px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #FF3131;
+  opacity: 0.06;
+}
+
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 36px -10px rgba(0, 0, 0, 0.55),
+              0 8px 16px -4px rgba(0, 0, 0, 0.35);
 }
 
 .stat-icon {
@@ -94,23 +135,29 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  background: rgba(139, 2, 2, 0.63);
+  color: #FFFFFF;
 }
 
 .stat-info {
   flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .stat-value {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 30px;
   font-weight: 800;
-  color: #1A1410;
+  color: #FFFFFF;
   line-height: 1;
 }
 
 .stat-label {
   font-size: 11px;
-  color: #7A6E68;
+  color: rgba(255, 255, 255, 0.55);
   margin-top: 2px;
 }
 
@@ -120,13 +167,14 @@
   padding: 4px 8px;
   border-radius: 20px;
   white-space: nowrap;
+  position: relative;
+  z-index: 1;
 }
 
 .stat-badge.active {
-  background: #D1FAE5;
-  color: #065F46;
+  background: rgba(255, 49, 49, 0.16);
+  color: #FF3131;
 }
-
 /* MAIN GRID */
 .main-grid {
   display: grid;
@@ -224,7 +272,261 @@
   border-left: 3px solid #D97706;
 }
 
-/* REPARTITION */
+/* CARTE SOMBRE - REPARTITION CHAUFFEURS */
+.card-dark {
+  background: #141214;
+  border: none;
+  color: #FFFFFF;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.55),
+              0 8px 20px -6px rgba(0, 0, 0, 0.35),
+              0 0 0 1px rgba(255, 49, 49, 0.10);
+}
+
+.dark-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.dark-hero-value {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1;
+  color: #FFFFFF;
+}
+
+.dark-hero-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 4px;
+}
+
+.dark-hero-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #FF3131;
+  background: rgba(255, 49, 49, 0.14);
+  padding: 6px 10px;
+  border-radius: 20px;
+}
+
+.dark-hero-badge mat-icon {
+  font-size: 15px !important;
+  width: 15px !important;
+  height: 15px !important;
+}
+
+.dark-sparkline {
+  width: 100%;
+  height: 50px;
+  margin-bottom: 22px;
+}
+
+.dark-sparkline svg {
+  width: 100%;
+  height: 100%;
+}
+
+.dark-repartition {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dark-rep-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dark-rep-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  width: 110px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.dark-rep-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dark-rep-bar-wrap {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.dark-rep-bar {
+  height: 100%;
+  border-radius: 20px;
+  transition: width 0.6s ease;
+  min-width: 4px;
+}
+
+.dark-rep-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #FFFFFF;
+  width: 24px;
+  text-align: right;
+}
+
+/* PARC VEHICULES */
+.parc-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 28px 20px;
+  box-shadow: 0 14px 28px -8px rgba(0, 0, 0, 0.14),
+              0 6px 12px -6px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.parc-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 36px -8px rgba(0, 0, 0, 0.18),
+              0 10px 18px -6px rgba(0, 0, 0, 0.10);
+}
+
+.parc-chart-wrap {
+  margin-bottom: 20px;
+}
+
+.parc-pie-svg {
+  width: 200px;
+  height: 200px;
+  overflow: visible;
+}
+
+.parc-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.parc-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3A2F28;
+}
+
+.parc-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.parc-metric {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.parc-metric-value {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 40px;
+  font-weight: 800;
+  color: #1A1410;
+  line-height: 1;
+}
+
+.parc-metric-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.parc-metric-badge mat-icon {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.parc-metric-badge.good {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.parc-metric-badge.warn {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.parc-metric-caption {
+  font-size: 12px;
+  color: #7A6E68;
+  margin-top: 6px;
+}
+
+/* LONG CARD (colonne droite regroupée) */
+.long-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.long-card-section {
+  padding: 20px;
+}
+
+.long-card-section.alert-section {
+  border-left: 3px solid #DC2626;
+}
+
+.long-card-section.panne-section {
+  border-left: 3px solid #D97706;
+}
+
+.long-card-divider {
+  height: 1px;
+  background: #F0EBE8;
+  margin: 0 20px;
+}
+
+.long-card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1A1410;
+}
+
+.long-card-title mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+/* REPARTITION (ancienne carte claire, plus utilisée directement mais gardée) */
 .repartition {
   display: flex;
   flex-direction: column;
@@ -327,10 +629,9 @@
 }
 
 .badge-statut.actif {
-  background: #D1FAE5;
-  color: #065F46;
+  background: rgba(255, 49, 49, 0.14);
+  color: #FF3131;
 }
-
 .badge-statut.inactif {
   background: #F3F4F6;
   color: #6B7280;
@@ -431,6 +732,18 @@
   color: #92400E;
 }
 
+.right-col-wrapper {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #F0EBE8;
+  box-shadow: 0 14px 28px -8px rgba(0, 0, 0, 0.08),
+              0 6px 12px -6px rgba(0, 0, 0, 0.05);
+}
+.right-col-wrapper .card {
+  background: #F8F8F8;
+  border: 1px solid #ECEAE8;
+}
 /* EMPTY STATE */
 .empty-state {
   text-align: center;

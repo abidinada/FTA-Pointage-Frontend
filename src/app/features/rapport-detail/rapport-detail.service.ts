@@ -63,6 +63,11 @@ export class RapportDetailService {
   affectationsAutre = signal<AffectationAutreResponse[]>([]);
   dureesMission     = signal<any[]>([]);
 
+  // FIX : chauffeurs ayant une absence active à la date du rapport —
+  // utilisé pour exclure ces chauffeurs de la liste "non affectés" du
+  // Bloc AUTRE (évite double saisie/double comptage avec le module Absences).
+  absencesActives = signal<any[]>([]);
+
   constructor(private http: HttpClient) {}
 
   // ── Données de référence ──────────────────────────────────────────
@@ -87,6 +92,13 @@ export class RapportDetailService {
     this.http.get<any[]>(`${this.apiUrl}/fournisseurs`).subscribe(d => {
       this.fournisseurs = d;
     });
+  }
+
+  // FIX : charge les absences actives à la date donnée (endpoint déjà
+  // existant côté backend : GET /api/absences/actives?date=)
+  loadAbsencesActives(dateRapport: string): void {
+    this.http.get<any[]>(`${this.apiUrl}/absences/actives?date=${dateRapport}`)
+      .subscribe(d => this.absencesActives.set(d));
   }
 
   // ── Maps ──────────────────────────────────────────────────────────
@@ -207,7 +219,10 @@ export class RapportDetailService {
 
   /**
    * Chauffeurs disponibles pour le bloc AUTRE :
-   * non affectés à un programme ET pas encore dans le bloc AUTRE
+   * non affectés à un programme, pas encore dans le bloc AUTRE,
+   * ET FIX : pas déjà couverts par une Absence active à la date du rapport
+   * (RG-AUTRE05 — évite la double saisie/double comptage avec le module
+   * Absences, qui reste la source de vérité unique pour congé/maladie).
    */
   getChauffeursDisponiblesAutre(): any[] {
     const affectesProg = new Set<number>();
@@ -220,9 +235,12 @@ export class RapportDetailService {
     });
 
     const dansAutre = new Set(this.affectationsAutre().map(a => a.idChauffeur));
+    const dejaAbsent = new Set(this.absencesActives().map((a: any) => a.idChauffeur));
 
     return this.chauffeurs().filter(c =>
-      !affectesProg.has(c.idChauffeur) && !dansAutre.has(c.idChauffeur)
+      !affectesProg.has(c.idChauffeur) &&
+      !dansAutre.has(c.idChauffeur) &&
+      !dejaAbsent.has(c.idChauffeur)
     );
   }
 

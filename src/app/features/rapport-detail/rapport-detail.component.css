@@ -1,31 +1,38 @@
 /* rapport-detail.component.css — Sprint 3 */
-
-.page-wrapper { background: #f0f2f5; min-height: 100vh; font-size: 0.82rem; }
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap');
+.page-wrapper { background: #f0f2f5; min-height: 100vh; font-size: 0.82rem; font-family: 'Barlow', sans-serif; }
 
 /* ── TOP BAR ── */
 .top-bar {
-  background: #fff; border-bottom: 1px solid #e2e8f0;
+  background: #ecf2f5; border-bottom: 1px solid #e2e8f0;
   padding: 8px 16px; display: flex; justify-content: space-between;
   align-items: center; flex-wrap: wrap; gap: 8px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
+.top-bar-icon {
+  width: 34px; height: 34px; border-radius: 9px;
+  background: #8b0017; border-bottom: 2px solid #ffffff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.top-bar-icon mat-icon { color: #ffffff; font-size: 17px; width: 17px; height: 17px; }
 .top-bar-left { display: flex; align-items: center; gap: 10px; }
 .top-bar-right { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.rapport-title { font-size: 1rem; font-weight: 700; margin: 0; color: #111827; }
+.rapport-title { font-family: 'Barlow Condensed', sans-serif; font-size: 1.1rem; font-weight: 800; margin: 0; color: #1A1410; text-transform: uppercase; }
 .rapport-subtitle { font-size: 0.72rem; color: #64748b; }
 
 button { cursor: pointer; display: inline-flex; align-items: center; gap: 4px; border-radius: 6px; font-size: 0.78rem; font-weight: 500; transition: background 0.15s; padding: 5px 10px; border: none; }
 button mat-icon { font-size: 15px; width: 15px; height: 15px; }
-.btn-back { background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; padding: 5px 8px; }
-.btn-back:hover { background: #f1f5f9; }
+.btn-back { background: #000000; border: 1px solid #e2e8f0; color: #ffffff; padding: 5px 8px; }
+.btn-back:hover { background: #2d2d2d; }
 .btn-outline { background: #fff; border: 1px solid #d1d5db; color: #475569; }
 .btn-outline:hover { background: #f8fafc; }
-.btn-retourner { background: #7c3aed; color: #fff; }
-.btn-retourner:hover { background: #6d28d9; }
-.btn-valider { background: #0f766e; color: #fff; font-weight: 600; }
-.btn-valider:hover { background: #115e59; }
-.btn-primary { background: #0f766e; color: #fff; font-weight: 600; }
-.btn-primary:hover:not(:disabled) { background: #115e59; }
+.btn-retourner { background: #d97706; color: #fff; }
+.btn-retourner:hover { background: #b45309; }
+.btn-valider { background: #a11f2b; color: #fff; font-weight: 600; }
+.btn-valider:hover { background: #841825; }
+.btn-primary { background: #a11f2b; color: #fff; font-weight: 600; }
+.btn-primary:hover:not(:disabled) { background: #841825; }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-secondary { background: #fff; color: #374151; border: 1px solid #d1d5db; }
 .btn-secondary:hover { background: #f9fafb; }
@@ -33,15 +40,15 @@ button mat-icon { font-size: 15px; width: 15px; height: 15px; }
 .icon-xs { font-size: 14px !important; width: 14px !important; height: 14px !important; }
 
 /* ── STEPPER ── */
-.stepper-bar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 8px 16px; display: flex; align-items: center; }
+.stepper-bar { background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 8px 16px; display: flex; align-items: center; }
 .step { display: flex; align-items: center; gap: 5px; font-size: 0.68rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
-.step.active { color: #111827; }
-.step.done  { color: #0f766e; }
+.step.active { color: #1A1410; }
+.step.done  { color: #166534; }
 .step-dot { width: 7px; height: 7px; border-radius: 50%; background: #d1d5db; flex-shrink: 0; }
-.step.active .step-dot { background: #7c3aed; }
-.step.done  .step-dot { background: #0f766e; }
+.step.active .step-dot { background: #FF3131; }
+.step.done  .step-dot { background: #16a34a; }
 .step-line  { flex: 1; height: 2px; background: #e2e8f0; min-width: 24px; }
-.step-line.done { background: #0f766e; }
+.step-line.done { background: #16a34a; }
 
 /* ── ALERTES ── */
 .alerts-zone { padding: 0 16px; margin-top: 10px; }
@@ -72,7 +79,8 @@ button mat-icon { font-size: 15px; width: 15px; height: 15px; }
   align-items: center;
   gap: 10px;
 }
-.sr-banner-icon { font-size: 20px; color: #0f766e; }
+
+.sr-banner-icon { font-size: 20px; color: #a11f2b; }
 .sr-banner-info { display: flex; flex-direction: column; gap: 1px; }
 .sr-banner-title { font-size: 0.82rem; font-weight: 700; color: #111827; }
 .sr-banner-meta  { font-size: 0.7rem; color: #64748b; }
@@ -106,15 +114,9 @@ button mat-icon { font-size: 15px; width: 15px; height: 15px; }
 }
 
 /* Bouton soumettre sous-rapport */
-.btn-soumettre-sr {
-  background: #0f766e;
-  color: #fff;
-  font-weight: 600;
-  padding: 6px 14px;
-  border-radius: 6px;
-  border: none;
-}
-.btn-soumettre-sr:hover:not(:disabled) { background: #115e59; }
+/* APRÈS */
+.btn-soumettre-sr { background: #a11f2b; color: #fff; font-weight: 600; padding: 6px 14px; border-radius: 6px; border: none; }
+.btn-soumettre-sr:hover:not(:disabled) { background: #841825; }
 .btn-soumettre-sr:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* Info soumis / validé */
@@ -134,11 +136,13 @@ button mat-icon { font-size: 15px; width: 15px; height: 15px; }
 
 /* ── SECTION ── */
 .fiche-section { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-.section-title-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #f8fafc; border-bottom: 1px solid #e5e7eb; }
-.section-icon { font-size: 16px; color: #0f766e; }
-.section-title-bar h2 { margin: 0; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; color: #374151; text-transform: uppercase; }
-.empty-section { padding: 16px; text-align: center; color: #94a3b8; font-style: italic; font-size: 0.78rem; }
+/* APRÈS */
+.section-title-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #000000; border-bottom: 1px solid #e5e7eb; }
+.section-icon { font-size: 16px; color: #ffffff; }
+.section-title-bar h2 { margin: 0; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; color: #ffffff; text-transform: uppercase; }
 .section-note { font-size: 0.68rem; color: #94a3b8; font-style: italic; margin-left: auto; }
+.empty-section { padding: 16px; text-align: center; color: #94a3b8; font-style: italic; font-size: 0.78rem; }
+
 
 /* ── GRID TRACTEURS ── */
 .tracteurs-grid { display: grid; grid-template-columns: 1fr; gap: 1px; background: #e5e7eb; }
@@ -148,29 +152,54 @@ button mat-icon { font-size: 15px; width: 15px; height: 15px; }
 .vehicule-row { background: #fff; padding: 8px 10px; display: flex; align-items: flex-start; gap: 56px; flex-wrap: wrap; }
 .row-panne-autorise { background: #fff; border-left: 3px solid #f59e0b; }
 .row-immobilise     { background: #fff; border-left: 3px solid #ef4444; opacity: 0.85; }
-
-.vehicule-id { display: flex; align-items: center; gap: 6px; min-width: 120px; max-width: 140px; flex-shrink: 0; }
+/* APRÈS */
+/* APRÈS */
+.vehicule-id { display: flex; align-items: center; gap: 6px; width: 170px; flex-shrink: 0; }
 .v-icon { font-size: 16px; color: #2563eb; flex-shrink: 0; }
 .v-details { display: flex; flex-direction: column; gap: 1px; overflow: hidden; }
 .v-immat { font-size: 0.8rem; font-weight: 700; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .v-marque { font-size: 0.65rem; color: #64748b; }
-.tag-panne-auto { display: none; }
-.tag-immobilise { display: none; }
-.immobilise-msg { font-size: 0.72rem; color: #991b1b; background: #fee2e2; padding: 3px 8px; border-radius: 4px; align-self: center; }
+/* ── LÉGENDE ── */
+.legende-etats {
+  display: flex; gap: 18px; flex-wrap: wrap;
+  padding: 7px 16px; background: #ffffff; border-bottom: 1px solid #e2e8f0;
+  font-size: 0.7rem; color: #475569;
+}
+.legende-item { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.legende-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.legende-dot-immobilise { background: #ef4444; }
+.legende-dot-autorise   { background: #f59e0b; }
+
+/* ── RAPPELS VÉHICULE (remplace .immobilise-msg) ── */
+.vehicule-rappel-panne {
+  display: flex; align-items: center; gap: 3px;
+  font-size: 0.62rem; color: #991b1b; background: #fee2e2;
+  border: 1px solid #fecaca; padding: 2px 6px; border-radius: 4px;
+  margin-top: 2px; width: fit-content;
+}
+.vehicule-rappel-panne mat-icon { color: #dc2626; }
+
+.vehicule-rappel-attention {
+  display: flex; align-items: center; gap: 3px;
+  font-size: 0.62rem; color: #92400e; background: #fef3c7;
+  border: 1px solid #fcd34d; padding: 2px 6px; border-radius: 4px;
+  margin-top: 2px; width: fit-content;
+}
+.vehicule-rappel-attention mat-icon { color: #d97706; }
 
 /* ── SLOTS ── */
 .slots-inline { flex: 1; display: flex; gap: 15px; flex-wrap: wrap; min-width: 0; max-width: 520px; }
 .slot-col { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 140px; max-width: 230px; }
 .slot-col-header { display: flex; align-items: center; gap: 3px; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 0; color: #64748b; }
-.slot-int-col  .slot-col-header { color: #4338ca; }
-.slot-nat-col  .slot-col-header { color: #15803d; }
+.slot-int-col  .slot-col-header { color: #2563eb; }
+.slot-nat-col  .slot-col-header { color: #166534; }
 .slot-jour-col .slot-col-header { color: #b45309; }
 .slot-nuit-col .slot-col-header { color: #1d4ed8; }
 .slot-divider { width: 1px; background: #e5e7eb; align-self: stretch; margin: 0 4px; }
 
 .slot-block { display: flex; flex-direction: column; gap: 1px; margin-bottom: 3px; }
 .slot-line { display: flex; align-items: center; gap: 3px; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 4px; padding: 3px 5px; min-height: 26px; transition: border-color 0.2s; }
-.slot-line.slot-saving { border-color: #0f766e; background: #f0fdf4; }
+.slot-line.slot-saving { border-color: #a11f2b; background: #fef2f2; }
 .slot-num { font-size: 0.6rem; font-weight: 700; color: #94a3b8; min-width: 10px; text-align: center; }
 
 .sel-chauffeur { flex: 1; min-width: 0; max-width: 150px; padding: 2px 4px; border: none; background: transparent; font-size: 0.75rem; color: #111827; }
@@ -184,7 +213,7 @@ button mat-icon { font-size: 15px; width: 15px; height: 15px; }
 .sel-mission:disabled { color: #94a3b8; }
 .sel-chauffeur-full { flex: 1; padding: 2px 4px; border: none; background: transparent; font-size: 0.75rem; color: #111827; }
 .sel-chauffeur-full:focus { outline: none; }
-.icon-saving { font-size: 12px !important; width: 12px !important; height: 12px !important; color: #0f766e; animation: spin 1s linear infinite; }
+.icon-saving { font-size: 12px !important; width: 12px !important; height: 12px !important; color: #a11f2b; animation: spin 1s linear infinite; }
 
 /* ── TRAÇABILITÉ ── */
 .tracabilite-badge { display: flex; align-items: center; gap: 3px; padding: 1px 6px; font-size: 0.6rem; color: #94a3b8; border-left: 2px solid #e5e7eb; margin-left: 12px; }
@@ -196,10 +225,10 @@ button mat-icon { font-size: 15px; width: 15px; height: 15px; }
 /* ── TOGGLE ── */
 .slot-toggle-col { min-width: 90px; flex-shrink: 0; }
 .toggle-label { display: flex; align-items: center; gap: 5px; font-size: 0.7rem; color: #374151; cursor: pointer; }
-.toggle-label input[type="checkbox"] { width: 13px; height: 13px; cursor: pointer; accent-color: #0f766e; }
+.toggle-label input[type="checkbox"] { width: 13px; height: 13px; cursor: pointer; accent-color: #a11f2b; }
 
 /* ── REMORQUE ── */
-.vehicule-id-block { display: flex; flex-direction: column; gap: 4px; min-width: 140px; max-width: 160px; flex-shrink: 0; }
+.vehicule-id-block { display: flex; flex-direction: column; gap: 4px; min-width: 150px; max-width: 170px; flex-shrink: 0; }
 .remorque-line { display: flex; align-items: center; gap: 4px; }
 .remorque-icon { color: #64748b; }
 .sel-remorque { flex: 1; padding: 2px 4px; border: 1px solid #e5e7eb; border-radius: 4px; font-size: 0.7rem; background: #f8fafc; color: #374151; }
@@ -331,7 +360,7 @@ button mat-icon { font-size: 15px; width: 15px; height: 15px; }
 .form-group { margin-bottom: 10px; }
 .form-label { display: block; font-size: 0.72rem; font-weight: 600; color: #374151; margin-bottom: 4px; text-transform: uppercase; }
 .form-control { width: 100%; padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.82rem; background: #f8fafc; box-sizing: border-box; }
-.form-control:focus { outline: none; border-color: #0f766e; box-shadow: 0 0 0 3px rgba(15,118,110,0.1); }
+.form-control:focus { outline: none; border-color: #a11f2b; box-shadow: 0 0 0 3px rgba(161,31,43,0.1); }
 textarea.form-control { min-height: 90px; resize: vertical; }
 
 /* ── HISTORIQUE ── */

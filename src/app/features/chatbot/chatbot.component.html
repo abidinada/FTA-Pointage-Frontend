@@ -1,0 +1,96 @@
+<!-- ── BOUTON FLOTTANT ──────────────────────────────────────────── -->
+<div class="chatbot-fab" (click)="toggleChat()" [class.ouvert]="ouvert()">
+  <mat-icon class="fab-icon">{{ ouvert() ? 'close' : 'smart_toy' }}</mat-icon>
+  <div class="fab-badge" *ngIf="!ouvert() && messages().length > 1">
+    {{ messages().length - 1 }}
+  </div>
+</div>
+
+<!-- ── WIDGET CHAT ──────────────────────────────────────────────── -->
+<div class="chatbot-widget" [class.visible]="ouvert()">
+
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <div class="chat-avatar">
+        <mat-icon>smart_toy</mat-icon>
+      </div>
+      <div>
+        <div class="chat-title">Assistant FTA</div>
+        <div class="chat-subtitle">Propulsé par IA locale</div>
+      </div>
+    </div>
+    <div class="chat-header-actions">
+      <button class="btn-vider" (click)="viderConversation()" title="Nouvelle conversation">
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <button class="btn-fermer" (click)="toggleChat()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="chat-messages" #messagesContainer>
+
+    <!-- Suggestions (affiché uniquement au début) -->
+    <div class="suggestions" *ngIf="messages().length <= 1 && getSuggestions().length > 0">
+      <p class="suggestions-titre">Questions fréquentes :</p>
+      <button class="suggestion-btn"
+              *ngFor="let s of getSuggestions()"
+              (click)="utiliserSuggestion(s)">
+        {{ s }}
+      </button>
+    </div>
+
+    <!-- Liste des messages -->
+    <div class="message-wrapper"
+         *ngFor="let msg of messages()"
+         [class.user-wrapper]="msg.role === 'user'"
+         [class.assistant-wrapper]="msg.role === 'assistant'">
+
+      <div class="message-avatar" *ngIf="msg.role === 'assistant'">
+        <mat-icon>smart_toy</mat-icon>
+      </div>
+
+      <div class="message-bubble" [class.user-bubble]="msg.role === 'user'"
+                                   [class.assistant-bubble]="msg.role === 'assistant'">
+        <div class="message-content" [innerHTML]="msg.content.replace('\n', '<br>')"></div>
+        <div class="message-time">{{ msg.time }}</div>
+      </div>
+
+      <div class="message-avatar user-avatar" *ngIf="msg.role === 'user'">
+        <mat-icon>person</mat-icon>
+      </div>
+
+    </div>
+
+    <!-- Indicateur de chargement -->
+    <div class="message-wrapper assistant-wrapper" *ngIf="chargement()">
+      <div class="message-avatar">
+        <mat-icon>smart_toy</mat-icon>
+      </div>
+      <div class="message-bubble assistant-bubble loading-bubble">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Input -->
+  <div class="chat-input-zone">
+    <textarea class="chat-input"
+              [(ngModel)]="messageInput"
+              (keydown)="onKeydown($event)"
+              placeholder="Posez votre question..."
+              rows="1"></textarea>
+    <button class="btn-envoyer"
+            (click)="envoyer()"
+            [disabled]="!messageInput.trim() || chargement()">
+      <mat-icon>send</mat-icon>
+    </button>
+  </div>
+
+</div>

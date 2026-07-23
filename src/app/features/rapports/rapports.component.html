@@ -1,19 +1,56 @@
-<div class="rapports-container">
+<div class="rapports-page">
 
   <!-- HEADER -->
   <div class="page-header">
     <div class="header-left">
-      <mat-icon class="header-icon">assignment</mat-icon>
-      <h1>Rapports Journaliers</h1>
+      <div class="page-icon">
+        <mat-icon>assignment</mat-icon>
+      </div>
+      <div>
+        <h1>Rapports journaliers</h1>
+        <p class="subtitle">Consultez, validez et retournez les rapports transmis par vos équipes.</p>
+      </div>
     </div>
     <button *ngIf="isExploitation()" class="btn-create" (click)="openCreer()">
-      <mat-icon>add</mat-icon> Nouveau Rapport
+      <mat-icon>add</mat-icon> Nouveau rapport
     </button>
   </div>
 
   <!-- ALERTES -->
   <div class="alert alert-success" *ngIf="success()">{{ success() }}</div>
   <div class="alert alert-error" *ngIf="error() && !showModal()">{{ error() }}</div>
+
+  <!-- KPI CARDS (style dashboard : noir + rouge) -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon"><mat-icon>pending_actions</mat-icon></div>
+      <div class="kpi-info">
+        <div class="kpi-value">{{ countTraiter }}</div>
+        <div class="kpi-label">À traiter</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon"><mat-icon>send</mat-icon></div>
+      <div class="kpi-info">
+        <div class="kpi-value">{{ countEnAttenteValidation }}</div>
+        <div class="kpi-label">En attente de validation</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon"><mat-icon>reply</mat-icon></div>
+      <div class="kpi-info">
+        <div class="kpi-value">{{ countRetournes }}</div>
+        <div class="kpi-label">Retournés</div>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon"><mat-icon>verified</mat-icon></div>
+      <div class="kpi-info">
+        <div class="kpi-value">{{ countValidesCeMois }}</div>
+        <div class="kpi-label">Validés ce mois</div>
+      </div>
+    </div>
+  </div>
 
   <!-- ONGLETS -->
   <div class="onglets">
@@ -57,33 +94,60 @@
     </div>
 
     <!-- Cards -->
-    <div class="rapport-card"
-         *ngFor="let rapport of rapportsFiltres"
-         (click)="ouvrirRapport(rapport)">
+    <div class="rapport-card" *ngFor="let rapport of rapportsFiltres">
 
-      <div class="card-left">
-        <mat-icon [class]="'statut-icon statut-' + rapport.statutRapport.toLowerCase()">
-          {{ getStatutIcon(rapport.statutRapport) }}
-        </mat-icon>
-        <div class="card-info">
-          <span class="card-date">{{ rapport.dateRapport | date:'EEEE dd MMMM yyyy' }}</span>
-          <span class="card-createur">
-            <mat-icon class="icon-xs">person</mat-icon>
-            {{ rapport.nomCreateur }}
+      <div class="card-date-box">
+        <span class="date-day-label">{{ rapport.dateRapport | date:'EEE' }}</span>
+        <span class="date-day-num">{{ rapport.dateRapport | date:'dd' }}</span>
+        <span class="date-month-label">{{ rapport.dateRapport | date:'MMM' }}</span>
+      </div>
+
+      <div class="card-main">
+
+        <div class="card-title-row">
+          <span class="card-date-full">{{ rapport.dateRapport | date:'EEEE dd MMMM yyyy' }}</span>
+          <span [class]="'badge ' + getBadgeClass(rapport.statutRapport)">
+            {{ getStatutLabel(rapport.statutRapport) }}
           </span>
         </div>
+
+        <div class="card-meta-row">
+          <mat-icon class="icon-xs">person_outline</mat-icon>
+          <span class="createur-name">{{ rapport.nomCreateur }}</span>
+        </div>
+
+        <button class="btn-voir-commentaire"
+          *ngIf="rapport.commentaireRetour && rapport.statutRapport === 'RETOURNE'"
+          (click)="voirCommentaire(rapport.commentaireRetour, $event)">
+          Voir le commentaire de retour
+        </button>
+
+        <div class="stepper">
+          <div class="step" [class.active]="stepIndex(rapport.statutRapport) >= 0">
+            <div class="step-dot"><mat-icon>edit_note</mat-icon></div>
+            <span>Créé</span>
+          </div>
+          <div class="step-line" [class.filled]="stepIndex(rapport.statutRapport) >= 1"></div>
+          <div class="step"
+               [class.active]="stepIndex(rapport.statutRapport) >= 1"
+               [class.retour]="rapport.statutRapport === 'RETOURNE'">
+            <div class="step-dot">
+              <mat-icon>{{ rapport.statutRapport === 'RETOURNE' ? 'reply' : 'send' }}</mat-icon>
+            </div>
+            <span>{{ rapport.statutRapport === 'RETOURNE' ? 'Retourné' : 'Soumis' }}</span>
+          </div>
+          <div class="step-line" [class.filled]="stepIndex(rapport.statutRapport) >= 2"></div>
+          <div class="step" [class.active]="stepIndex(rapport.statutRapport) >= 2">
+            <div class="step-dot"><mat-icon>check_circle</mat-icon></div>
+            <span>Validé</span>
+          </div>
+        </div>
+
       </div>
 
-      <div class="card-right">
-        <span [class]="'badge ' + getBadgeClass(rapport.statutRapport)">
-          {{ getStatutLabel(rapport.statutRapport) }}
-        </span>
-        <div class="card-retour" *ngIf="rapport.commentaireRetour && rapport.statutRapport === 'RETOURNE'">
-          <mat-icon class="icon-xs">warning</mat-icon>
-          {{ rapport.commentaireRetour }}
-        </div>
-        <mat-icon class="card-arrow">chevron_right</mat-icon>
-      </div>
+      <button class="btn-ouvrir" (click)="ouvrirRapport(rapport)">
+        <mat-icon>open_in_new</mat-icon> Ouvrir
+      </button>
 
     </div>
   </div>
@@ -110,6 +174,22 @@
       <button class="btn-primary" (click)="creerRapport()">
         <mat-icon>check</mat-icon> Créer
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COMMENTAIRE RETOUR -->
+<div class="modal-overlay" *ngIf="commentaireOuvert()" (click)="fermerCommentaire()">
+  <div class="modal modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2><mat-icon class="icon-xs">chat_bubble_outline</mat-icon> Commentaire de retour</h2>
+      <button class="btn-close" (click)="fermerCommentaire()"><mat-icon>close</mat-icon></button>
+    </div>
+    <div class="modal-body">
+      <p class="commentaire-texte">{{ commentaireOuvert() }}</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="fermerCommentaire()">Fermer</button>
     </div>
   </div>
 </div>

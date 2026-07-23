@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrl: './feature-card.component.css'
 })
 export class FeatureCardComponent {
-  @Input() image!: string;
+  @Input() image?: string;
   @Input() icon = '';
   @Input() title = '';
   @Input() description = '';

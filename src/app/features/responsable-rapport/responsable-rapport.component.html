@@ -2,15 +2,16 @@
 
   <!-- TOP BAR -->
   <div class="top-bar">
-    <div class="top-bar-left">
-      <button class="btn-back" (click)="retournerListe()">
-        <mat-icon>arrow_back</mat-icon>
-      </button>
-      <div *ngIf="rapport()">
-        <h1 class="rapport-title">Rapport du {{ rapport().dateRapport | date:'dd/MM/yyyy' }}</h1>
-        <span class="rapport-subtitle">Vue Responsable Exploitation</span>
-      </div>
-    </div>
+<div class="top-bar-left">
+  <button class="btn-back" (click)="retournerListe()">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <div class="top-bar-icon"><mat-icon>supervisor_account</mat-icon></div>
+  <div *ngIf="rapport()">
+    <h1 class="rapport-title">Rapport du {{ rapport().dateRapport | date:'dd/MM/yyyy' }}</h1>
+    <span class="rapport-subtitle">Vue Responsable Exploitation</span>
+  </div>
+</div>
     <div class="top-bar-right" *ngIf="rapport()">
       <span [class]="'badge-rapport ' + rapportStatutClass()">{{ rapportStatutLabel() }}</span>
 
@@ -51,67 +52,65 @@
   </div>
 
   <!-- STATS BAR -->
-  <div class="stats-bar" *ngIf="rapport()">
+<div class="stats-bar" *ngIf="rapport()">
 
-    <div class="stat-chip stat-chip-neutral">
-      <span class="stat-chip-icon"><mat-icon>people</mat-icon></span>
-      <span class="stat-chip-text">
-        <span class="stat-val">{{ sousRapports().length }}</span>
-        <span class="stat-lbl">Agents</span>
-      </span>
+  <div class="stat-card">
+    <div class="stat-icon"><mat-icon>people</mat-icon></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ sousRapports().length }}</div>
+      <div class="stat-label">Agents</div>
     </div>
-
-    <div class="stat-chip stat-chip-brouillon">
-      <span class="stat-chip-icon"><mat-icon>edit_note</mat-icon></span>
-      <span class="stat-chip-text">
-        <span class="stat-val">{{ nbBrouillons }}</span>
-        <span class="stat-lbl">En saisie</span>
-      </span>
-    </div>
-
-    <div class="stat-chip stat-chip-soumis">
-      <span class="stat-chip-icon"><mat-icon>send</mat-icon></span>
-      <span class="stat-chip-text">
-        <span class="stat-val">{{ nbSoumis }}</span>
-        <span class="stat-lbl">En attente de validation</span>
-      </span>
-    </div>
-
-    <div class="stat-chip stat-chip-retourne">
-      <span class="stat-chip-icon"><mat-icon>reply</mat-icon></span>
-      <span class="stat-chip-text">
-        <span class="stat-val">{{ nbRetournes }}</span>
-        <span class="stat-lbl">Retournés</span>
-      </span>
-    </div>
-
-    <div class="stat-chip stat-chip-valide">
-      <span class="stat-chip-icon"><mat-icon>check_circle</mat-icon></span>
-      <span class="stat-chip-text">
-        <span class="stat-val">{{ nbValides }}</span>
-        <span class="stat-lbl">Validés</span>
-      </span>
-    </div>
-
-    <div class="stat-divider"></div>
-
-    <div class="stat-chip stat-chip-neutral">
-      <span class="stat-chip-icon"><mat-icon>local_shipping</mat-icon></span>
-      <span class="stat-chip-text">
-        <span class="stat-val">{{ nbAffectes }}/{{ totalVehicules }}</span>
-        <span class="stat-lbl">Véhicules affectés</span>
-      </span>
-    </div>
-
-    <div class="stat-chip" [class.stat-chip-warning]="vehiculesNonAffectes().length > 0" [class.stat-chip-neutral]="vehiculesNonAffectes().length === 0">
-      <span class="stat-chip-icon"><mat-icon>warning</mat-icon></span>
-      <span class="stat-chip-text">
-        <span class="stat-val">{{ vehiculesNonAffectes().length }}</span>
-        <span class="stat-lbl">Non affectés</span>
-      </span>
-    </div>
-
   </div>
+
+  <div class="stat-card">
+    <div class="stat-icon"><mat-icon>edit_note</mat-icon></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ nbBrouillons }}</div>
+      <div class="stat-label">En saisie</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon"><mat-icon>send</mat-icon></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ nbSoumis }}</div>
+      <div class="stat-label">En attente de validation</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon"><mat-icon>reply</mat-icon></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ nbRetournes }}</div>
+      <div class="stat-label">Retournés</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon"><mat-icon>check_circle</mat-icon></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ nbValides }}</div>
+      <div class="stat-label">Validés</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon"><mat-icon>local_shipping</mat-icon></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ nbAffectes }}/{{ totalVehicules }}</div>
+      <div class="stat-label">Véhicules affectés</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon"><mat-icon>warning</mat-icon></div>
+    <div class="stat-info">
+      <div class="stat-value">{{ vehiculesNonAffectes().length }}</div>
+      <div class="stat-label">Non affectés</div>
+    </div>
+  </div>
+
+</div>
 
   <div class="tab-content">
 
@@ -135,7 +134,6 @@
           <!-- En-tête agent -->
           <div class="sr-card-header">
             <div class="sr-agent-info">
-              <mat-icon class="sr-agent-icon">person</mat-icon>
               <div>
                 <span class="sr-agent-name">{{ sr.usernameAgent }}</span>
                 <span class="sr-agent-dept">{{ sr.departementAgent }}</span>

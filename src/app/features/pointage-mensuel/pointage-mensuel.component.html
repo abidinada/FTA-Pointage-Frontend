@@ -2,24 +2,26 @@
 
   <!-- ── HEADER ──────────────────────────────────────────────────── -->
   <div class="page-header">
-    <div class="header-left">
+  <div class="header-left">
+    <div class="page-icon-box">
       <mat-icon class="header-icon">calendar_month</mat-icon>
-      <div>
-        <h1 class="page-title">Pointage Mensuel</h1>
-        <p class="page-subtitle">Vue calendrier</p>
-      </div>
     </div>
-    <div class="header-actions">
-      <button class="btn-generer" *ngIf="canEdit()" (click)="generer()" [disabled]="generating()">
-        <mat-icon [class.spin]="generating()">{{ generating() ? 'sync' : 'playlist_add_check' }}</mat-icon>
-        {{ generating() ? 'Génération...' : (estMoisEnCours() ? 'Générer jusqu\'à hier' : 'Générer le mois') }}
-      </button>
-      <button class="btn-export" *ngIf="canEdit()" (click)="exporterExcel()" [disabled]="exportingExcel()">
-        <mat-icon [class.spin]="exportingExcel()">{{ exportingExcel() ? 'sync' : 'download' }}</mat-icon>
-        {{ exportingExcel() ? 'Export...' : 'Exporter Excel' }}
-      </button>
+    <div>
+      <h1 class="page-title">Pointage Mensuel</h1>
+      <p class="page-subtitle">Vue calendrier</p>
     </div>
   </div>
+  <div class="header-actions">
+    <button class="btn-generer" *ngIf="canEdit()" (click)="generer()" [disabled]="generating()">
+      <mat-icon [class.spin]="generating()">{{ generating() ? 'sync' : 'playlist_add_check' }}</mat-icon>
+      {{ generating() ? 'Génération...' : (estMoisEnCours() ? 'Générer jusqu\'à hier' : 'Générer le mois') }}
+    </button>
+    <button class="btn-export" *ngIf="canEdit()" (click)="exporterExcel()" [disabled]="exportingExcel()">
+      <mat-icon [class.spin]="exportingExcel()">{{ exportingExcel() ? 'sync' : 'download' }}</mat-icon>
+      {{ exportingExcel() ? 'Export...' : 'Exporter Excel' }}
+    </button>
+  </div>
+</div>
 
   <!-- ── NAVIGATION MOIS ─────────────────────────────────────────── -->
   <div class="mois-nav">

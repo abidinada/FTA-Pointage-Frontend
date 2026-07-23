@@ -2,28 +2,14 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/services/auth.service';
 
 interface Reparation {
   idReparation:       number;
-  idAtelier:          number;
-  nomAtelier:         string;
-  typeAtelier:        string;
   dateReparation:     string;
-  descriptionTravaux: string;
-  technicien:         string;
-  usernameCreateur:   string;
   cloture:            boolean;
-}
-
-interface Remplacement {
-  idRemplacement:          number;
-  idTracteur:              number;
-  immatriculationTracteur: string;
-  dateDebut:               string;
-  dateFin:                 string | null;
-  commentaire:             string;
 }
 
 interface Panne {
@@ -36,24 +22,30 @@ interface Panne {
   dateFin:              string | null;
   description:          string;
   usernameCreateur:     string;
-  cloturee:             boolean;
+  cloturee:              boolean;
   reparations:          Reparation[];
-  remplacement:         Remplacement | null;
 }
 
+// Format brut tel que renvoyé par chaque endpoint backend.
+// /api/tracteurs                -> statut: string (déjà à plat)
+// /api/remorques                -> statutVehicule: { idStatutVehicule, libelle } (entité JPA)
+// /api/voitures-service         -> statutVehicule: { idStatutVehicule, libelle } (entité JPA)
+interface VehiculeRaw {
+  idTracteur?: number;
+  idRemorque?: number;
+  idVoitureService?: number;
+  immatriculation: string;
+  statut?: string;
+  statutVehicule?: { idStatutVehicule: number; libelle: string };
+}
+
+// Format interne unifié utilisé dans tout le reste du composant (inchangé).
 interface Vehicule {
   idTracteur?: number;
   idRemorque?: number;
   idVoitureService?: number;
   immatriculation: string;
-  statutVehicule: { libelle: string } | string;
-}
-
-interface Atelier {
-  idAtelier: number;
-  nom: string;
-  adresse: string;
-  type: string;
+  statut: string;
 }
 
 @Component({
@@ -71,7 +63,6 @@ export class PannesComponent implements OnInit {
   tracteurs   = signal<Vehicule[]>([]);
   remorques   = signal<Vehicule[]>([]);
   voitures    = signal<Vehicule[]>([]);
-  ateliers    = signal<Atelier[]>([]);
 
   loading     = signal(false);
   error       = signal('');
@@ -90,26 +81,6 @@ export class PannesComponent implements OnInit {
     statutChoisi: 'EN_PANNE_IMMOBILISE'
   };
 
-  showDetailModal = signal(false);
-  panneDetail     = signal<Panne | null>(null);
-
-  showReparationModal = signal(false);
-  reparationForm = {
-    idAtelier:           null as number | null,
-    dateReparation:       new Date().toISOString().split('T')[0],
-    descriptionTravaux:   '',
-    technicien:           '',
-    cloture:              false
-  };
-
-  showRemplacementModal = signal(false);
-  remplacementForm = {
-    idTracteur:  null as number | null,
-    dateDebut:   new Date().toISOString().split('T')[0],
-    dateFin:     '',
-    commentaire: ''
-  };
-
   pannesFiltrees = computed(() => {
     let list = this.pannes();
     const statut = this.filtreStatut();
@@ -120,16 +91,157 @@ export class PannesComponent implements OnInit {
     return list;
   });
 
-  tracteursDisponibles = computed(() =>
-    this.tracteurs().filter(t => this.getStatutLibelle(t) === 'DISPONIBLE')
-  );
+  // ── Graphique mensuel (Signalées / Résolues) ──────────────────────
 
-  constructor(private http: HttpClient, public authService: AuthService) {}
+  currentYear = new Date().getFullYear();
+  private readonly moisLabels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+
+  private getDateClotureReparation(p: Panne): Date | null {
+    const clot = p.reparations.find(r => r.cloture);
+    if (clot) return new Date(clot.dateReparation);
+    if (p.dateFin) return new Date(p.dateFin);
+    return null;
+  }
+
+  monthlyChart = computed(() => {
+    const now = new Date();
+    const months: { label: string; signalees: number; resolues: number }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const y = d.getFullYear(), m = d.getMonth();
+      const signalees = this.pannes().filter(p => {
+        const pd = new Date(p.dateDebut);
+        return pd.getFullYear() === y && pd.getMonth() === m;
+      }).length;
+      const resolues = this.pannes().filter(p => {
+        if (!p.cloturee) return false;
+        const cd = this.getDateClotureReparation(p);
+        return cd && cd.getFullYear() === y && cd.getMonth() === m;
+      }).length;
+      months.push({ label: this.moisLabels[m], signalees, resolues });
+    }
+    return months;
+  });
+
+  monthlyChartMax = computed(() => {
+    const m = this.monthlyChart();
+    return Math.max(1, ...m.map(x => Math.max(x.signalees, x.resolues)));
+  });
+
+  // ── Répartition par catégorie de véhicule ─────────────────────────
+
+  categoryBreakdown = computed(() => {
+    const counts: Record<string, number> = { TRACTEUR: 0, REMORQUE: 0, VOITURE_SERVICE: 0 };
+    this.pannes().forEach(p => { counts[p.typeVehicule] = (counts[p.typeVehicule] || 0) + 1; });
+    const colors: Record<string, string> = { TRACTEUR: '#d03b3b', REMORQUE: '#2563eb', VOITURE_SERVICE: '#f59e0b' };
+    const labels: Record<string, string> = { TRACTEUR: 'Tracteurs', REMORQUE: 'Remorques', VOITURE_SERVICE: 'Voitures de service' };
+    return Object.keys(counts)
+      .map(k => ({ key: k, label: labels[k], count: counts[k], color: colors[k] }))
+      .filter(x => x.count > 0)
+      .sort((a, b) => b.count - a.count);
+  });
+
+  categoryDonutSegments = computed(() => {
+    const data = this.categoryBreakdown();
+    const total = data.reduce((s, d) => s + d.count, 0);
+
+    if (total === 0) return { mode: 'empty' as const, segments: [] as { path: string; color: string }[], singleColor: '' };
+    if (data.length === 1) return { mode: 'single' as const, segments: [], singleColor: data[0].color };
+
+    const center = 110, radius = 75, explode = 4;
+    let startAngle = 0;
+    const segments = data.map(d => {
+      const angle = (d.count / total) * 360;
+      const endAngle = startAngle + angle;
+      const midAngle = startAngle + angle / 2;
+      const rad = (midAngle - 90) * Math.PI / 180;
+      const offsetX = Math.cos(rad) * explode;
+      const offsetY = Math.sin(rad) * explode;
+      const path = this.describeSlice(center + offsetX, center + offsetY, radius, startAngle, endAngle);
+      startAngle = endAngle;
+      return { path, color: d.color };
+    });
+
+    return { mode: 'multi' as const, segments, singleColor: '' };
+  });
+
+  private polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
+    const angleRad = (angleDeg - 90) * Math.PI / 180;
+    return { x: cx + r * Math.cos(angleRad), y: cy + r * Math.sin(angleRad) };
+  }
+
+  private describeSlice(cx: number, cy: number, r: number, startAngle: number, endAngle: number): string {
+    const start = this.polarToCartesian(cx, cy, r, endAngle);
+    const end = this.polarToCartesian(cx, cy, r, startAngle);
+    const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
+    return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 0 ${end.x} ${end.y} Z`;
+  }
+
+  // ── Taux résolution + sparkline cette semaine ─────────────────────
+
+  private weekDays(): Date[] {
+    const now = new Date();
+    const dayIdx = (now.getDay() + 6) % 7;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - dayIdx);
+    monday.setHours(0, 0, 0, 0);
+    const days: Date[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      days.push(d);
+    }
+    return days;
+  }
+
+  weeklyResolutionSpark = computed(() => {
+    const days = this.weekDays();
+    const dayLabels = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+    return days.map((d, i) => {
+      const count = this.pannes().filter(p => {
+        if (!p.cloturee) return false;
+        const cd = this.getDateClotureReparation(p);
+        return cd && cd.toDateString() === d.toDateString();
+      }).length;
+      return { label: dayLabels[i], count };
+    });
+  });
+
+  weeklySparkMax = computed(() => Math.max(1, ...this.weeklyResolutionSpark().map(x => x.count)));
+
+  tauxResolutionSemaine = computed(() => {
+    const days = this.weekDays();
+    const start = days[0];
+    const end = new Date(days[6]);
+    end.setHours(23, 59, 59, 999);
+
+    const enCoursPendantSemaine = this.pannes().filter(p => {
+      const pd = new Date(p.dateDebut);
+      if (pd > end) return false;
+      if (!p.cloturee) return true;
+      const cd = this.getDateClotureReparation(p);
+      return !cd || cd >= start;
+    });
+
+    const resoluesCetteSemaine = enCoursPendantSemaine.filter(p => {
+      if (!p.cloturee) return false;
+      const cd = this.getDateClotureReparation(p);
+      return cd && cd >= start && cd <= end;
+    });
+
+    if (enCoursPendantSemaine.length === 0) return 0;
+    return Math.round((resoluesCetteSemaine.length / enCoursPendantSemaine.length) * 100);
+  });
+
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    public authService: AuthService
+  ) {}
 
   ngOnInit() {
     this.charger();
     this.chargerVehicules();
-    this.chargerAteliers();
   }
 
   charger() {
@@ -140,28 +252,46 @@ export class PannesComponent implements OnInit {
     });
   }
 
-  chargerVehicules() {
-    this.http.get<Vehicule[]>(`${this.apiUrl}/tracteurs`).subscribe({ next: (d) => this.tracteurs.set(d) });
-    this.http.get<Vehicule[]>(`${this.apiUrl}/remorques`).subscribe({ next: (d) => this.remorques.set(d) });
-    this.http.get<Vehicule[]>(`${this.apiUrl}/voitures-service`).subscribe({ next: (d) => this.voitures.set(d) });
+  // FIX : normalisation à la réception — /api/tracteurs renvoie `statut` en string
+  // directe, tandis que /api/remorques et /api/voitures-service renvoient l'entité
+  // JPA brute avec `statutVehicule: { idStatutVehicule, libelle }`. On aplatit les
+  // trois vers le même format Vehicule { statut: string } pour que tout le reste
+  // du composant (et le template HTML) n'ait jamais à connaître cette différence.
+  private normaliserVehicule(v: VehiculeRaw): Vehicule {
+    return {
+      idTracteur:       v.idTracteur,
+      idRemorque:       v.idRemorque,
+      idVoitureService: v.idVoitureService,
+      immatriculation:  v.immatriculation,
+      statut:           v.statut ?? v.statutVehicule?.libelle ?? ''
+    };
   }
 
-  chargerAteliers() {
-    this.http.get<Atelier[]>(`${this.apiUrl}/ateliers`).subscribe({ next: (d) => this.ateliers.set(d) });
+  chargerVehicules() {
+    this.http.get<VehiculeRaw[]>(`${this.apiUrl}/tracteurs`).subscribe({
+      next: (d) => this.tracteurs.set(d.map(v => this.normaliserVehicule(v)))
+    });
+    this.http.get<VehiculeRaw[]>(`${this.apiUrl}/remorques`).subscribe({
+      next: (d) => this.remorques.set(d.map(v => this.normaliserVehicule(v)))
+    });
+    this.http.get<VehiculeRaw[]>(`${this.apiUrl}/voitures-service`).subscribe({
+      next: (d) => this.voitures.set(d.map(v => this.normaliserVehicule(v)))
+    });
   }
 
   isMaintenance(): boolean { return this.authService.getDepartement() === 'MAINTENANCE'; }
   canEdit():       boolean { return this.isMaintenance(); }
 
   getVehiculesPourType(type: string): Vehicule[] {
-    if (type === 'TRACTEUR') return this.tracteurs();
-    if (type === 'REMORQUE') return this.remorques();
-    return this.voitures();
+    const filtre = (v: Vehicule) =>
+      !v.statut.includes('EN_PANNE') && v.statut !== 'HORS_SERVICE' && v.statut !== 'VENDU';
+    if (type === 'TRACTEUR') return this.tracteurs().filter(filtre);
+    if (type === 'REMORQUE') return this.remorques().filter(filtre);
+    return this.voitures().filter(filtre);
   }
 
   getStatutLibelle(v: Vehicule): string {
-    if (typeof v.statutVehicule === 'string') return v.statutVehicule;
-    return v.statutVehicule?.libelle || '';
+    return v.statut || '';
   }
 
   getVehiculeId(v: Vehicule): number {
@@ -209,122 +339,7 @@ export class PannesComponent implements OnInit {
   }
 
   ouvrirDetail(p: Panne) {
-    this.http.get<Panne>(`${this.apiUrl}/pannes/${p.idPanne}`).subscribe({
-      next: (d) => { this.panneDetail.set(d); this.showDetailModal.set(true); },
-      error: (err) => this.error.set(this.parseErr(err))
-    });
-  }
-
-  changerStatutVehicule(nouveauStatut: string) {
-    const p = this.panneDetail();
-    if (!p) return;
-    this.http.put<Panne>(`${this.apiUrl}/pannes/${p.idPanne}/statut`, { statut: nouveauStatut }).subscribe({
-      next: () => {
-        this.success.set('Statut mis à jour');
-        setTimeout(() => this.success.set(''), 3000);
-        this.ouvrirDetail(p);
-        this.charger();
-        this.chargerVehicules();
-      },
-      error: (err) => this.error.set(this.parseErr(err))
-    });
-  }
-
-  openReparationModal() {
-    this.reparationForm = {
-      idAtelier: null, dateReparation: new Date().toISOString().split('T')[0],
-      descriptionTravaux: '', technicien: '', cloture: false
-    };
-    this.error.set('');
-    this.showReparationModal.set(true);
-  }
-
-  ajouterReparation() {
-    const p = this.panneDetail();
-    if (!p) return;
-    if (!this.reparationForm.idAtelier) { this.error.set('Sélectionnez un atelier'); return; }
-
-    const body = {
-      idPanne: p.idPanne,
-      idAtelier: this.reparationForm.idAtelier,
-      dateReparation: this.reparationForm.dateReparation,
-      descriptionTravaux: this.reparationForm.descriptionTravaux || null,
-      technicien: this.reparationForm.technicien || null,
-      cloture: this.reparationForm.cloture
-    };
-
-    this.http.post<Reparation>(`${this.apiUrl}/pannes/reparations`, body).subscribe({
-      next: () => {
-        this.showReparationModal.set(false);
-        this.success.set(this.reparationForm.cloture ? 'Panne clôturée' : 'Réparation ajoutée');
-        setTimeout(() => this.success.set(''), 3000);
-        this.ouvrirDetail(p);
-        this.charger();
-        this.chargerVehicules();
-      },
-      error: (err) => this.error.set(this.parseErr(err))
-    });
-  }
-
-  cloturerReparation(idReparation: number) {
-    const p = this.panneDetail();
-    if (!p) return;
-    if (!confirm('Clôturer cette réparation ? Le véhicule repassera DISPONIBLE.')) return;
-
-    this.http.put<Reparation>(`${this.apiUrl}/pannes/reparations/${idReparation}/cloturer`, {}).subscribe({
-      next: () => {
-        this.success.set('Panne clôturée — véhicule disponible');
-        setTimeout(() => this.success.set(''), 3000);
-        this.ouvrirDetail(p);
-        this.charger();
-        this.chargerVehicules();
-      },
-      error: (err) => this.error.set(this.parseErr(err))
-    });
-  }
-
-  openRemplacementModal() {
-    this.remplacementForm = {
-      idTracteur: null, dateDebut: new Date().toISOString().split('T')[0],
-      dateFin: '', commentaire: ''
-    };
-    this.error.set('');
-    this.showRemplacementModal.set(true);
-  }
-
-  enregistrerRemplacement() {
-    const p = this.panneDetail();
-    if (!p) return;
-    if (!this.remplacementForm.idTracteur) { this.error.set('Sélectionnez un tracteur'); return; }
-
-    const body = {
-      idPanne: p.idPanne,
-      idTracteur: this.remplacementForm.idTracteur,
-      dateDebut: this.remplacementForm.dateDebut,
-      dateFin: this.remplacementForm.dateFin || null,
-      commentaire: this.remplacementForm.commentaire || null
-    };
-
-    this.http.post<Remplacement>(`${this.apiUrl}/pannes/remplacements`, body).subscribe({
-      next: () => {
-        this.showRemplacementModal.set(false);
-        this.success.set('Remplacement enregistré');
-        setTimeout(() => this.success.set(''), 3000);
-        this.ouvrirDetail(p);
-      },
-      error: (err) => this.error.set(this.parseErr(err))
-    });
-  }
-
-  supprimerRemplacement(idRemplacement: number) {
-    const p = this.panneDetail();
-    if (!p) return;
-    if (!confirm('Supprimer ce remplacement ?')) return;
-
-    this.http.delete(`${this.apiUrl}/pannes/remplacements/${idRemplacement}`).subscribe({
-      next: () => { this.success.set('Remplacement supprimé'); this.ouvrirDetail(p); },
-      error: (err) => this.error.set(this.parseErr(err))
-    });
+    this.router.navigate(['/pannes', p.idPanne]);
   }
 
   getTypeVehiculeLabel(type: string): string {

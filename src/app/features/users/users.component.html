@@ -1,28 +1,46 @@
 <div class="page">
 
   <div class="page-header">
-    <div>
-      <h1>Utilisateurs</h1>
-      <p class="subtitle">Gestion des comptes utilisateurs — ADMIN uniquement</p>
+    <div class="header-content">
+      <div class="page-icon">
+        <mat-icon>manage_accounts</mat-icon>
+      </div>
+      <div class="header-text">
+        <h1>Utilisateurs</h1>
+        <p class="subtitle">Gestion des comptes utilisateurs — ADMIN uniquement</p>
+      </div>
     </div>
     <button class="btn-primary" (click)="openAjouter()">
-      <mat-icon>add</mat-icon>
+      <mat-icon>person_add</mat-icon>
       Ajouter un utilisateur
     </button>
   </div>
 
-  @if (success()) { <div class="alert success">✓ {{ success() }}</div> }
-  @if (error()) { <div class="alert error">⚠ {{ error() }}</div> }
+  @if (success()) {
+    <div class="alert success">
+      <mat-icon>check_circle</mat-icon>
+      {{ success() }}
+    </div>
+  }
+  @if (error()) {
+    <div class="alert error">
+      <mat-icon>warning</mat-icon>
+      {{ error() }}
+    </div>
+  }
 
   <div class="filters">
     <input class="search-input" type="text"
            placeholder="Rechercher par username ou département..."
            [(ngModel)]="recherche"/>
-    <select class="filter-select" [(ngModel)]="filtreActif">
-      <option [ngValue]="null">Tous</option>
-      <option [ngValue]="true">Actifs</option>
-      <option [ngValue]="false">Inactifs</option>
-    </select>
+    <div class="select-wrapper">
+      <select class="filter-select" [(ngModel)]="filtreActif">
+        <option [ngValue]="null">Tous</option>
+        <option [ngValue]="true">Actifs</option>
+        <option [ngValue]="false">Inactifs</option>
+      </select>
+      <mat-icon class="select-arrow">expand_more</mat-icon>
+    </div>
   </div>
 
   @if (loading()) {
@@ -77,9 +95,16 @@
       <div class="modal" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h2>Ajouter un utilisateur</h2>
-          <button class="close-btn" (click)="closeModal()">✕</button>
+          <button class="close-btn" (click)="closeModal()">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
-        @if (error()) { <div class="alert error">⚠ {{ error() }}</div> }
+        @if (error()) {
+          <div class="alert error">
+            <mat-icon>warning</mat-icon>
+            {{ error() }}
+          </div>
+        }
         <div class="form-group">
           <label>Username *</label>
           <input class="form-input" type="text" [(ngModel)]="form.username"
@@ -113,10 +138,17 @@
       <div class="modal modal-small" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h2>Désactiver l'utilisateur</h2>
-          <button class="close-btn" (click)="closeModal()">✕</button>
+          <button class="close-btn" (click)="closeModal()">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
         <p class="modal-text">L'utilisateur ne pourra plus se connecter.</p>
-        @if (error()) { <div class="alert error">⚠ {{ error() }}</div> }
+        @if (error()) {
+          <div class="alert error">
+            <mat-icon>warning</mat-icon>
+            {{ error() }}
+          </div>
+        }
         <div class="form-group">
           <label>Motif *</label>
           <input class="form-input" type="text" [(ngModel)]="motifDesactivation"
@@ -136,9 +168,16 @@
       <div class="modal modal-small" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h2>Réinitialiser le mot de passe</h2>
-          <button class="close-btn" (click)="closeModal()">✕</button>
+          <button class="close-btn" (click)="closeModal()">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
-        @if (error()) { <div class="alert error">⚠ {{ error() }}</div> }
+        @if (error()) {
+          <div class="alert error">
+            <mat-icon>warning</mat-icon>
+            {{ error() }}
+          </div>
+        }
         <div class="form-group">
           <label>Nouveau mot de passe *</label>
           <input class="form-input" type="password" [(ngModel)]="nouveauPassword"

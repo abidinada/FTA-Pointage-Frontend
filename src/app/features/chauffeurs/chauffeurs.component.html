@@ -3,23 +3,47 @@
   <!-- PAGE HEADER -->
   <div class="page-header">
     <div class="header-content">
-      <img src="/logo_rouge_final.png" alt="Logo FTA" class="page-logo" />
+      <div class="page-icon">
+        <mat-icon>people</mat-icon>
+      </div>
       <div class="header-text">
         <h1>Chauffeurs</h1>
         <p class="subtitle">Gestion des chauffeurs nationaux et internationaux</p>
       </div>
     </div>
     @if (isAdmin()) {
-      <button class="btn-primary" (click)="openAjouter()">+ Ajouter un chauffeur</button>
+      <button class="btn-primary" (click)="openAjouter()">
+        <mat-icon>person_add</mat-icon>
+        Ajouter un chauffeur
+      </button>
     }
   </div>
 
   <!-- MESSAGES -->
   @if (success()) {
-    <div class="alert success">✓ {{ success() }}</div>
+    <div class="alert success">
+      <mat-icon>check_circle</mat-icon>
+      {{ success() }}
+    </div>
   }
   @if (error()) {
-    <div class="alert error">⚠ {{ error() }}</div>
+    <div class="alert error">
+      <mat-icon>warning</mat-icon>
+      {{ error() }}
+    </div>
+  }
+
+  <!-- FIX : bandeau indiquant le filtre "alerte visa" actif, avec option de retrait -->
+  @if (filtreVisaAlerte()) {
+    <div class="alert error" style="display:flex; justify-content:space-between; align-items:center;">
+      <span>
+        <mat-icon style="vertical-align:middle;">warning</mat-icon>
+        Filtré : chauffeurs internationaux avec visa en alerte (expire sous 40j, expiré, ou manquant)
+      </span>
+      <button class="btn-secondary" (click)="retirerFiltreVisaAlerte()">
+        Retirer le filtre
+      </button>
+    </div>
   }
 
   <!-- FILTRES -->
@@ -30,16 +54,22 @@
       placeholder="Rechercher par nom ou prénom..."
       [(ngModel)]="recherche"
     />
-    <select class="filter-select" [(ngModel)]="filtreType">
-      <option value="">Tous les types</option>
-      <option value="NATIONAL">National</option>
-      <option value="INTERNATIONAL">International</option>
-    </select>
-    <select class="filter-select" [(ngModel)]="filtreActif">
-      <option [ngValue]="null">Tous</option>
-      <option [ngValue]="true">Actifs</option>
-      <option [ngValue]="false">Inactifs</option>
-    </select>
+    <div class="select-wrapper">
+      <select class="filter-select" [(ngModel)]="filtreType">
+        <option value="">Tous les types</option>
+        <option value="NATIONAL">National</option>
+        <option value="INTERNATIONAL">International</option>
+      </select>
+      <mat-icon class="select-arrow">expand_more</mat-icon>
+    </div>
+    <div class="select-wrapper">
+      <select class="filter-select" [(ngModel)]="filtreActif">
+        <option [ngValue]="null">Tous</option>
+        <option [ngValue]="true">Actifs</option>
+        <option [ngValue]="false">Inactifs</option>
+      </select>
+      <mat-icon class="select-arrow">expand_more</mat-icon>
+    </div>
   </div>
 
   <!-- TABLEAU -->
@@ -81,7 +111,9 @@
               </td>
               @if (isAdmin()) {
                 <td class="actions">
-                  <button class="btn-edit" (click)="openModifier(c)">Modifier</button>
+                  <button class="btn-edit" (click)="openModifier(c)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
                   @if (c.actif) {
                     <button class="btn-delete" (click)="openDesactiver(c)">Désactiver</button>
                   } @else {
@@ -107,11 +139,16 @@
 
         <div class="modal-header">
           <h2>{{ isEditing() ? 'Modifier le chauffeur' : 'Ajouter un chauffeur' }}</h2>
-          <button class="close-btn" (click)="closeModal()">✕</button>
+          <button class="close-btn" (click)="closeModal()">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
 
         @if (error()) {
-          <div class="alert error">⚠ {{ error() }}</div>
+          <div class="alert error">
+            <mat-icon>warning</mat-icon>
+            {{ error() }}
+          </div>
         }
 
         <div class="form-group">
@@ -162,13 +199,18 @@
 
         <div class="modal-header">
           <h2>Désactiver le chauffeur</h2>
-          <button class="close-btn" (click)="closeModal()">✕</button>
+          <button class="close-btn" (click)="closeModal()">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
 
         <p class="modal-text">Cette action désactivera le chauffeur. Il ne pourra plus être affecté à un programme.</p>
 
         @if (error()) {
-          <div class="alert error">⚠ {{ error() }}</div>
+          <div class="alert error">
+            <mat-icon>warning</mat-icon>
+            {{ error() }}
+          </div>
         }
 
         <div class="form-group">
